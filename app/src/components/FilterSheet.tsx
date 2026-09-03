@@ -65,12 +65,6 @@ export function FilterSheet({ open, filters, matchCount, onChange, onClose }: Pr
               >
                 轉換價值接近百元
               </div>
-              <div
-                className={`chip ${filters.listedDay1to6 ? "on" : ""}`}
-                onClick={() => onChange({ ...filters, listedDay1to6: !filters.listedDay1to6 })}
-              >
-                上市第1–6天
-              </div>
             </div>
           </div>
 

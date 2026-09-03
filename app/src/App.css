@@ -44,13 +44,13 @@ body {
 .brand {
   font-family: "Noto Serif TC", serif;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 22.5px;
 }
 .brand small {
   display: block;
   font-family: "IBM Plex Mono", monospace;
   font-weight: 400;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--gold);
@@ -58,7 +58,7 @@ body {
 }
 .market-pill {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
+  font-size: 12.5px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -99,7 +99,7 @@ body {
   border: none;
   background: transparent;
   outline: none;
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--ink);
   width: 100%;
   font-family: inherit;
@@ -117,7 +117,7 @@ body {
   border-radius: 10px;
   padding: 9px 13px;
   font-family: "Noto Sans TC", sans-serif;
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 500;
   position: relative;
   cursor: pointer;
@@ -127,7 +127,7 @@ body {
   background: var(--gold);
   color: #26200f;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   border-radius: 999px;
   min-width: 16px;
@@ -144,7 +144,7 @@ body {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 7px 10px;
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--ink-soft);
   font-family: "IBM Plex Mono", monospace;
 }
@@ -162,12 +162,12 @@ body {
 }
 .panel-title {
   font-family: "Noto Serif TC", serif;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   padding: 14px 2px 2px;
 }
 .panel-sub {
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--ink-faint);
   padding: 2px 2px 8px;
 }
@@ -177,14 +177,14 @@ body {
   align-items: center;
   padding: 2px 2px 10px;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--ink-faint);
 }
 .state-msg {
   padding: 30px 4px;
   text-align: center;
   color: var(--ink-faint);
-  font-size: 13px;
+  font-size: 14.5px;
 }
 .state-msg.error {
   color: var(--up);
@@ -212,7 +212,7 @@ body {
   min-width: 0;
 }
 .card-name .nm {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 .card-name .code-row {
@@ -221,7 +221,7 @@ body {
   align-items: baseline;
   gap: 6px;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--ink-faint);
 }
 .code-row .code-num {
@@ -243,7 +243,7 @@ body {
   margin-top: 1px;
 }
 .tag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 5px;
@@ -271,7 +271,7 @@ body {
 .star-btn {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
   color: var(--ink-faint);
   cursor: pointer;
@@ -285,13 +285,13 @@ body {
 }
 .card-price .px {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .card-price .chg {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 12px;
+  font-size: 13.5px;
   font-variant-numeric: tabular-nums;
 }
 .up {
@@ -302,8 +302,8 @@ body {
 }
 .card-bottom {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 6px;
   margin-top: 11px;
   padding-top: 10px;
   border-top: 1px dashed var(--line);
@@ -315,17 +315,15 @@ body {
   min-width: 0;
 }
 .metric .lbl {
-  font-size: 9.5px;
+  font-size: 10.5px;
   color: var(--ink-faint);
 }
 .metric .val {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
 }
 
 /* ---- pipeline ---- */
@@ -346,7 +344,7 @@ body {
 }
 .stage-head h4 {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 700;
 }
 .stage-line {
@@ -356,7 +354,7 @@ body {
 }
 .stage-n {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   white-space: nowrap;
 }
@@ -374,16 +372,16 @@ body {
   gap: 8px;
 }
 .p-name {
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
 }
 .p-broker {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   margin-top: 2px;
 }
 .p-badge {
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 999px;
@@ -406,7 +404,7 @@ body {
 }
 .p-remark {
   margin-top: 8px;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--ink-soft);
   border-top: 1px dashed var(--line);
   padding-top: 8px;
@@ -416,7 +414,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--accent);
   font-weight: 600;
   cursor: pointer;
@@ -442,7 +440,7 @@ body {
   gap: 8px;
 }
 .a-method {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 999px;
@@ -460,17 +458,17 @@ body {
 }
 .a-date {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   white-space: nowrap;
 }
 .a-name {
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 700;
   margin-top: 7px;
 }
 .a-sub {
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--ink-soft);
   margin-top: 2px;
 }
@@ -481,7 +479,7 @@ body {
   flex-wrap: wrap;
 }
 .a-row .metric .val {
-  font-size: 12.5px;
+  font-size: 14px;
 }
 
 /* ---- watch empty ---- */
@@ -495,7 +493,7 @@ body {
   text-align: center;
 }
 .watch-empty-text {
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--ink-soft);
 }
 
@@ -551,16 +549,16 @@ body {
 .sheet-head h3 {
   margin: 0;
   font-family: "Noto Serif TC", serif;
-  font-size: 17px;
+  font-size: 19px;
 }
 .detail-sub {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--ink-faint);
   margin-top: 3px;
 }
 .sheet-reset {
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--ink-faint);
   text-decoration: underline;
   cursor: pointer;
@@ -574,7 +572,7 @@ body {
   margin-bottom: 22px;
 }
 .f-group .f-title {
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--ink-soft);
   margin-bottom: 9px;
@@ -585,7 +583,7 @@ body {
   font-family: "IBM Plex Mono", monospace;
   font-weight: 400;
   color: var(--ink-faint);
-  font-size: 11px;
+  font-size: 12.5px;
 }
 .chips {
   display: flex;
@@ -596,7 +594,7 @@ body {
   padding: 7px 13px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--ink-soft);
   background: var(--surface);
   cursor: pointer;
@@ -620,7 +618,7 @@ body {
   border: none;
   border-radius: 12px;
   padding: 14px;
-  font-size: 14.5px;
+  font-size: 16.5px;
   font-weight: 700;
   display: flex;
   justify-content: center;
@@ -633,7 +631,7 @@ body {
   background: rgba(255, 255, 255, 0.2);
   padding: 1px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13.5px;
 }
 
 /* ---- detail sheet ---- */
@@ -652,17 +650,17 @@ body {
   grid-column: 1 / -1;
 }
 .detail-item .lbl {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
 }
 .detail-item .val {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 600;
 }
 .detail-section-title {
   font-family: "Noto Serif TC", serif;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 700;
   margin: 18px 0 10px;
   padding-top: 14px;
@@ -670,14 +668,14 @@ body {
 }
 .detail-empty {
   color: var(--ink-faint);
-  font-size: 12.5px;
+  font-size: 14px;
   padding: 6px 0 16px;
 }
 .ladder {
   margin: 14px 0 10px;
 }
 .ladder-title {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--ink-soft);
   margin-bottom: 8px;
@@ -691,7 +689,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 12px;
+  font-size: 13.5px;
   background: var(--surface-2);
   border-radius: 6px;
   padding: 5px 10px;
@@ -705,7 +703,7 @@ body {
 .pdf-link {
   grid-column: 1 / -1;
   color: var(--accent);
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 600;
   text-decoration: none;
   margin-top: 4px;
@@ -731,7 +729,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--ink-faint);
   cursor: pointer;
 }
