@@ -1,4 +1,8 @@
-# CB Radar — 排程腳本
+# CB Radar
+
+台灣可轉換公司債即時報價、預計發行與競拍/詢圈公告追蹤 PWA。
+
+**線上網址**：https://jimmyw2015.github.io/cb-radar/（手機瀏覽器開啟後可「加到主畫面」）
 
 ## 目前架構
 
@@ -37,8 +41,21 @@ TWSA 網站會拒絕雲端資料中心的連線（Supabase Edge Function 測試�
    - 開始位置：`D:\Claude Test\CB-Radar`
 4. 存檔即可，之後每天會自動執行
 
-## 待補：CBAS / TWSE 排程上雲端 cron
+`sync-cbas`、`poll-quotes` 已經用 Supabase 內建的 `pg_cron` + `pg_net` 排程呼叫，
+不需要額外主機。`poll-quotes` 內建時段檢查，只有平日 09:00–13:40（台北時間）才會真的
+去抓報價，其餘時間呼叫會直接跳過。
 
-`sync-cbas`（建議每日一次，例如開盤前）與 `poll-quotes`（建議開盤時段每3-5分鐘一次）
-兩支已經是 Supabase Edge Function，還沒接上自動排程，下一步要用 `pg_cron` + `pg_net`
-在 Supabase 內部排程呼叫，不需要額外主機。
+## 前端部署（GitHub Pages）
+
+網頁版本放在 `gh-pages` 分支，由 `app/dist` 的 build 產物直接發布，不經過 GitHub Actions
+（目前 `gh` CLI 的 OAuth token 沒有 `workflow` 權限，沒辦法推 `.github/workflows/`；
+`.github/workflows/deploy.yml` 這支寫好但目前沒啟用，之後跑 `gh auth refresh -s workflow`
+拿到權限後把它加回 git 追蹤、推上去，就能改成每次 push 自動部署）。
+
+**手動重新部署**（改完前端程式碼後）：
+```bash
+cd app
+npm run build
+npx gh-pages -d dist -m "Deploy CB Radar"
+```
+幾分鐘內 https://jimmyw2015.github.io/cb-radar/ 就會更新成最新版本。
