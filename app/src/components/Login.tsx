@@ -1,9 +1,19 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../lib/useAuth";
 
+// Supabase Auth needs a real email-shaped identifier internally, but the
+// user only ever types a plain username — this appends a fixed pseudo-domain
+// so "capital" becomes "capital@cbradar.local" behind the scenes.
+const AUTH_DOMAIN = "@cbradar.local";
+
+function toAuthEmail(input: string): string {
+  const trimmed = input.trim();
+  return trimmed.includes("@") ? trimmed : `${trimmed}${AUTH_DOMAIN}`;
+}
+
 export function Login() {
   const { signIn } = useAuth();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -12,7 +22,7 @@ export function Login() {
     e.preventDefault();
     setError(null);
     setBusy(true);
-    const message = await signIn(email.trim(), password);
+    const message = await signIn(toAuthEmail(username), password);
     setBusy(false);
     if (message) setError(message === "Invalid login credentials" ? "帳號或密碼錯誤" : message);
   }
@@ -28,10 +38,10 @@ export function Login() {
           <label className="login-field">
             <span>帳號</span>
             <input
-              type="email"
+              type="text"
               autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </label>
