@@ -24,7 +24,11 @@ export function CBCard({ row, watched, onToggleWatch, onClick }: Props) {
         <div className="card-name">
           <div className="nm">{row.cb_name}</div>
           <div className="code-row">
-            {row.cb_code} · 母股 {row.stock_code ?? "-"}
+            <span className="code-num">{row.cb_code}</span>
+            <span className="premium-label">溢折價率</span>
+            <span className={`premium-val ${premium !== null && premium < 0 ? "down" : "up"}`}>{fmtPct(premium)}</span>
+          </div>
+          <div className="tag-row">
             <span className={`tag ${isGuaranteed ? "guar" : "unguar"}`}>
               {isGuaranteed ? "有擔保" : "無擔保"}
             </span>
@@ -44,7 +48,6 @@ export function CBCard({ row, watched, onToggleWatch, onClick }: Props) {
           </button>
           <div className="card-price">
             <div className="px">{fmtNum(price)}</div>
-            <div className={`chg ${premium !== null && premium < 0 ? "down" : "up"}`}>{fmtPct(premium)}</div>
           </div>
         </div>
       </div>

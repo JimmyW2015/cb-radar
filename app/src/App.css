@@ -218,11 +218,29 @@ body {
 .card-name .code-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   gap: 6px;
   font-family: "IBM Plex Mono", monospace;
   font-size: 11px;
   color: var(--ink-faint);
+}
+.code-row .code-num {
+  color: var(--ink-faint);
+}
+.code-row .premium-label {
+  font-family: "Noto Sans TC", sans-serif;
+  color: var(--ink-faint);
+  margin-left: 4px;
+}
+.code-row .premium-val {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.card-name .tag-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1px;
 }
 .tag {
   font-size: 10px;

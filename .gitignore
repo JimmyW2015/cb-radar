@@ -1,3 +1,6 @@
 .env
 __pycache__/
 *.pyc
+
+# untracked until gh CLI token has 'workflow' scope; see README
+.github/workflows/deploy.yml
