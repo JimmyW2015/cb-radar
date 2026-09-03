@@ -1,4 +1,4 @@
-import { fmtDateShort, fmtNum } from "../lib/format";
+import { fmtDateROC, fmtNum } from "../lib/format";
 import type { PipelineRow } from "../lib/types";
 
 export function PipelineCard({ row }: { row: PipelineRow }) {
@@ -22,21 +22,21 @@ export function PipelineCard({ row }: { row: PipelineRow }) {
           <>
             <Metric label="發行規模" value={row.circulation !== null ? `${fmtNum(row.circulation, 1)} 億` : "-"} />
             <Metric label="年期" value={row.annual ?? "-"} />
-            <Metric label="董事會公告日" value={fmtDateShort(row.announcement_day)} />
+            <Metric label="董事會公告日" value={fmtDateROC(row.announcement_day)} />
           </>
         )}
         {row.stage === "effective" && (
           <>
             <Metric label="詢圈/競拍時程" value={row.inquiry_auction ?? "-"} />
             <Metric label="暫估溢價率" value={row.premium_rate ?? "-"} />
-            <Metric label="預計生效日" value={fmtDateShort(row.expected_effective_date)} />
+            <Metric label="預計生效日" value={fmtDateROC(row.expected_effective_date)} />
           </>
         )}
         {row.stage === "recently_listed" && (
           <>
             <Metric label="轉換溢價率" value={row.premium_rate ? `${row.premium_rate}%` : "-"} />
             <Metric label="轉換價值" value={fmtNum(row.conversion_value)} />
-            <Metric label="掛牌日" value={fmtDateShort(row.listing_day)} />
+            <Metric label="掛牌日" value={fmtDateROC(row.listing_day)} />
           </>
         )}
       </div>

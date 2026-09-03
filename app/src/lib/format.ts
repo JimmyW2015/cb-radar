@@ -9,16 +9,7 @@ export function fmtPct(n: number | null | undefined, digits = 2): string {
   return `${sign}${n.toLocaleString("zh-TW", { minimumFractionDigits: digits, maximumFractionDigits: digits })}%`;
 }
 
-export function fmtDate(s: string | null | undefined): string {
-  if (!s) return "-";
-  const d = new Date(s);
-  if (Number.isNaN(d.getTime())) return "-";
-  const yy = String(d.getUTCFullYear()).slice(2);
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(d.getUTCDate()).padStart(2, "0");
-  return `${yy}/${mm}/${dd}`;
-}
-
+// All dates in the app display as ROC (民國) year — Gregorian year minus 1911.
 export function fmtDateROC(s: string | null | undefined): string {
   if (!s) return "-";
   const d = new Date(s);
@@ -27,13 +18,4 @@ export function fmtDateROC(s: string | null | undefined): string {
   const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
   const dd = String(d.getUTCDate()).padStart(2, "0");
   return `${roc}/${mm}/${dd}`;
-}
-
-export function fmtDateShort(s: string | null | undefined): string {
-  if (!s) return "-";
-  const d = new Date(s);
-  if (Number.isNaN(d.getTime())) return "-";
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(d.getUTCDate()).padStart(2, "0");
-  return `${mm}/${dd}`;
 }

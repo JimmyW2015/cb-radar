@@ -1,4 +1,4 @@
-import { fmtDate, fmtDateROC, fmtNum, fmtPct } from "../lib/format";
+import { fmtDateROC, fmtNum, fmtPct } from "../lib/format";
 import type { BidStats, CBRow } from "../lib/types";
 
 interface Props {
@@ -37,15 +37,15 @@ export function CBDetailSheet({ row, bidStats, onClose }: Props) {
                 <DetailItem label="母股現價" value={fmtNum(row.stockQuote?.price ?? null)} />
                 <DetailItem label="TCRI" value={row.tcri ?? "-"} />
                 <DetailItem label="擔保情形" value={row.guarantee_situation ?? "-"} />
-                <DetailItem label="發行日" value={fmtDate(row.issue_date)} />
+                <DetailItem label="發行日" value={fmtDateROC(row.issue_date)} />
                 <DetailItem label="到期日" value={fmtDateROC(row.expiry_date)} />
                 <DetailItem label="剩餘天數" value={row.remaining_days !== null ? `${row.remaining_days} 天` : "-"} />
                 <DetailItem label="餘額比率" value={row.balance_ratio !== null ? `${fmtNum(row.balance_ratio, 1)}%` : "-"} />
                 <DetailItem label="市值(億)" value={fmtNum(row.market_value, 2)} />
-                <DetailItem label="最新賣回日" value={fmtDate(row.latest_sale_date)} />
+                <DetailItem label="最新賣回日" value={fmtDateROC(row.latest_sale_date)} />
                 <DetailItem label="賣回價" value={fmtNum(row.latest_sale_price)} />
                 <DetailItem label="賣回殖利率" value={row.sell_back_yield !== null ? `${fmtNum(row.sell_back_yield)}%` : "-"} />
-                <DetailItem label="停止轉換期間" value={row.stop_conversion_date ? `${fmtDate(row.stop_conversion_date)} ~ ${fmtDate(row.stop_converting_until_date)}` : "-"} />
+                <DetailItem label="停止轉換期間" value={row.stop_conversion_date ? `${fmtDateROC(row.stop_conversion_date)} ~ ${fmtDateROC(row.stop_converting_until_date)}` : "-"} />
                 {row.reset_conversion_price && row.reset_conversion_price.trim() && (
                   <DetailItem label="重設狀態" value={row.reset_conversion_price} />
                 )}
@@ -57,7 +57,7 @@ export function CBDetailSheet({ row, bidStats, onClose }: Props) {
                   <div className="detail-grid">
                     <DetailItem label="競拍方式" value={bidStats.auction_method ?? "-"} />
                     <DetailItem label="主辦承銷商" value={bidStats.underwriter ?? "-"} />
-                    <DetailItem label="開標日期" value={fmtDate(bidStats.bid_opening_date)} />
+                    <DetailItem label="開標日期" value={fmtDateROC(bidStats.bid_opening_date)} />
                     <DetailItem label="最低承銷價格" value={fmtNum(bidStats.floor_price)} />
                     <DetailItem label="得標加權平均價格" value={fmtNum(bidStats.weighted_avg_price)} />
                     <DetailItem label="公開承銷價格" value={fmtNum(bidStats.issue_price)} />

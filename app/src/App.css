@@ -302,7 +302,9 @@ body {
 }
 .card-bottom {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* sized to fit each column's widest value across both rows (到期日
+     "116/09/06" is the longest, so its column gets the most room) */
+  grid-template-columns: 8fr 9fr 6fr 5fr;
   gap: 8px 6px;
   margin-top: 11px;
   padding-top: 10px;
@@ -317,13 +319,14 @@ body {
 .metric .lbl {
   font-size: 10.5px;
   color: var(--ink-faint);
+  white-space: nowrap;
 }
 .metric .val {
   font-family: "IBM Plex Mono", monospace;
   font-size: 13.5px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: break-word;
+  white-space: nowrap;
 }
 
 /* ---- pipeline ---- */

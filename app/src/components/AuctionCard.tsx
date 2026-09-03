@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fmtDate, fmtNum } from "../lib/format";
+import { fmtDateROC, fmtNum } from "../lib/format";
 import type { Auction } from "../lib/types";
 
 const METHOD_CLASS: Record<string, string> = {
@@ -17,7 +17,7 @@ export function AuctionCard({ auction }: { auction: Auction }) {
     <div className={`a-card ${done ? "done" : ""}`}>
       <div className="a-top">
         <span className={`a-method ${methodClass}`}>{auction.method ?? "-"}</span>
-        <span className="a-date">{fmtDate(auction.report_date)} 申報</span>
+        <span className="a-date">{fmtDateROC(auction.report_date)} 申報</span>
       </div>
       <div className="a-name">
         {auction.company} — {auction.bond_type}
@@ -57,7 +57,7 @@ export function AuctionCard({ auction }: { auction: Auction }) {
           {auction.bid_opening_date !== null && (
             <div className="metric">
               <span className="lbl">開標日期</span>
-              <span className="val">{fmtDate(auction.bid_opening_date)}</span>
+              <span className="val">{fmtDateROC(auction.bid_opening_date)}</span>
             </div>
           )}
         </div>
