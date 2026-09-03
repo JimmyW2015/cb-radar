@@ -2,5 +2,8 @@
 __pycache__/
 *.pyc
 
-# untracked until gh CLI token has 'workflow' scope; see README
+# untracked until gh CLI token has 'workflow' scope; see DEVLOG.md
 .github/workflows/deploy.yml
+
+# detailed dev notes stay local-only, not on the public repo
+DEVLOG.md
