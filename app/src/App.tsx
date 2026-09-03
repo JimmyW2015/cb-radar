@@ -5,9 +5,11 @@ import { AuctionsPage } from "./pages/AuctionsPage";
 import { WatchlistPage } from "./pages/WatchlistPage";
 import { FilterSheet } from "./components/FilterSheet";
 import { CBDetailSheet } from "./components/CBDetailSheet";
+import { Login } from "./components/Login";
 import { useCbData } from "./lib/useCbData";
 import { useWatchlist } from "./lib/useWatchlist";
 import { useSimpleTable } from "./lib/useSimpleTable";
+import { useAuth } from "./lib/useAuth";
 import { applyFilters, defaultFilters, countActiveFilters, type FilterState } from "./lib/filters";
 import { isMarketOpen, taipeiTimeString } from "./lib/marketStatus";
 import type { BidStats, CBRow } from "./lib/types";
@@ -72,6 +74,18 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ];
 
 export default function App() {
+  const { session, loading: authLoading, signOut } = useAuth();
+
+  if (authLoading) {
+    return <div className="auth-loading">載入中…</div>;
+  }
+  if (!session) {
+    return <Login />;
+  }
+  return <AppShell onSignOut={signOut} />;
+}
+
+function AppShell({ onSignOut }: { onSignOut: () => void }) {
   const [tab, setTab] = useState<Tab>("list");
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
@@ -106,9 +120,18 @@ export default function App() {
             可轉債雷達
             <small>CB RADAR · CBAS / TPEx / TWSA</small>
           </div>
-          <div className={`market-pill ${marketOpen ? "" : "closed"}`}>
-            <span className="dot" />
-            {marketOpen ? "盤中" : "休市"} {taipeiTimeString(now)}
+          <div className="topbar-right">
+            <div className={`market-pill ${marketOpen ? "" : "closed"}`}>
+              <span className="dot" />
+              {marketOpen ? "盤中" : "休市"} {taipeiTimeString(now)}
+            </div>
+            <button className="logout-btn" onClick={onSignOut} aria-label="登出">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
           </div>
         </div>
         {tab === "list" && (

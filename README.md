@@ -4,6 +4,10 @@
 
 **線上網址**：https://jimmyw2015.github.io/cb-radar/（手機瀏覽器開啟後可「加到主畫面」）
 
+**需要登入**：網站本身跟資料庫都設了帳密驗證（Supabase Auth），沒登入看不到任何資料。
+帳號密碼**不存在repo裡**（避免公開repo外流），忘記密碼可以在 Supabase Dashboard →
+Authentication → Users 找到帳號重設。
+
 **開發紀錄**：[DEVLOG.md](DEVLOG.md) — 架構決策、踩過的坑、已知限制，日後開發前建議先看
 
 ## 目前架構

@@ -12,8 +12,8 @@ TWSA edoc2 ────┘         ↑                                          
 ```
 
 - Supabase 專案：`cb-radar`（project_id: `euhreglmhsodxntmvkkr`），區域 ap-southeast-1
-- GitHub repo：https://github.com/JimmyW2015/cb-radar （public）
-- 線上網址：https://jimmyw2015.github.io/cb-radar/
+- GitHub repo：https://github.com/JimmyW2015/cb-radar （public，之後若升級GitHub付費方案可考慮轉private，見下方「存取控制」）
+- 線上網址：https://jimmyw2015.github.io/cb-radar/（**需要登入**，見下方「存取控制」）
 
 ## 資料來源
 
@@ -24,7 +24,24 @@ TWSA edoc2 ────┘         ↑                                          
 | TWSA edoc2 (`web.twsa.org.tw/edoc2/`) | 承銷公告(CB競拍/詢圈公告) + 開標統計表(得標明細) | ASP.NET WebForms，需模擬 postback |
 | TWSE ISIN (`isin.twse.com.tw/isin/C_public.jsp`) | 判斷母股是上市(TSE)還是上櫃(TPEx)，決定MIS查詢用 `tse_`/`otc_` 前綴 | 公開，MS950(Big5)編碼 |
 
-## 資料庫 Schema（Supabase Postgres，RLS 開，公開可讀）
+## 存取控制（2026-09-03新增）
+
+GitHub Pages不支援「repo私有但發布網站也私有」（除非Enterprise Cloud，個人專案不划算），
+所以改成在應用層加驗證，而不是靠平台層：
+
+- 用 Supabase Auth 建了一個帳號（email+密碼登入），前端加了`src/components/Login.tsx` +
+  `src/lib/useAuth.ts`，沒登入只會看到登入畫面
+- **關鍵**：光有登入畫面不夠，因為`anon` public key本來就會被打包進前端JS、任何人都能從
+  瀏覽器devtools挖出來直接打Supabase REST API繞過登入畫面。所以同時把所有資料表的RLS
+  policy從`using (true)`（公開可讀）改成`using (auth.role() = 'authenticated')`（要登入
+  才能讀）。這樣就算有人繞過UI直接呼叫API，沒登入一樣拿不到資料（已用curl驗證：帶anon
+  key但沒登入session，回傳空陣列）
+- 後端排程（`sync-cbas`/`poll-quotes`/本機`sync_auctions.py`）都是用`service_role`
+  key寫入，`service_role`本來就無視RLS，不受影響
+- **登入密碼不存在repo/DEVLOG裡**，只有使用者知道，忘記密碼要去Supabase Dashboard →
+  Authentication → Users 重設
+
+## 資料庫 Schema（Supabase Postgres，RLS 要求登入才能讀）
 
 - `stocks` — 母股主檔，`market` 欄位存 `TSE`/`TPEx`
 - `bonds` — 已發行CB主檔（CBAS `GetIssuedCBSchedule`）

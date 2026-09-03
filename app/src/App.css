@@ -79,6 +79,120 @@ body {
   border-radius: 50%;
   background: currentColor;
 }
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.logout-btn:hover {
+  color: var(--up);
+  border-color: var(--up);
+}
+
+/* ---- login ---- */
+.auth-loading {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-faint);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  background: var(--bg);
+}
+.login-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+}
+.login-card {
+  width: 100%;
+  max-width: 340px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px 28px 28px;
+}
+.login-brand {
+  font-family: "Noto Serif TC", serif;
+  font-weight: 700;
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 28px;
+}
+.login-brand small {
+  display: block;
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 6px;
+}
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.login-field input {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--ink);
+  outline: none;
+}
+.login-field input:focus {
+  border-color: var(--accent);
+}
+.login-error {
+  color: var(--up);
+  font-size: 12.5px;
+  margin-bottom: 14px;
+}
+.login-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: "Noto Sans TC", sans-serif;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 
 .searchrow {
   margin-top: 12px;
