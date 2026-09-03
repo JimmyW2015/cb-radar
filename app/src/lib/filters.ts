@@ -10,11 +10,18 @@ export interface FilterState {
   nearMaturity: boolean; // 快到期（三個月內到期）
   recentlyIssued: boolean; // 剛發行（7日內發行）
   nearParity: boolean; // 轉換價值接近百元
+  listedDay1to6: boolean; // 上市第1天到第6天
 }
 
 export const NEAR_MATURITY_DAYS = 90;
 export const RECENTLY_ISSUED_DAYS = 7;
 export const NEAR_PARITY_BAND = 5; // conversion_value within 100 ± 5
+export const LISTED_DAY_MIN = 1;
+export const LISTED_DAY_MAX = 6;
+
+function daysSinceIssue(issueDate: string): number {
+  return Math.round((Date.now() - new Date(issueDate).getTime()) / 86_400_000);
+}
 
 export const PREMIUM_BOUNDS: [number, number] = [-80, 250];
 export const DAYS_BOUNDS: [number, number] = [0, 2000];
@@ -31,6 +38,7 @@ export const defaultFilters: FilterState = {
   nearMaturity: false,
   recentlyIssued: false,
   nearParity: false,
+  listedDay1to6: false,
 };
 
 function tcriTier(tcri: string | null): "1-3" | "4-6" | "7-9" | "none" {
@@ -65,12 +73,15 @@ export function applyFilters(rows: CBRow[], f: FilterState): CBRow[] {
       if (r.remaining_days === null || r.remaining_days < 0 || r.remaining_days > NEAR_MATURITY_DAYS) return false;
     }
     if (f.recentlyIssued) {
-      if (!r.issue_date) return false;
-      const daysSinceIssue = Math.round((Date.now() - new Date(r.issue_date).getTime()) / 86_400_000);
-      if (daysSinceIssue < 0 || daysSinceIssue > RECENTLY_ISSUED_DAYS) return false;
+      if (!r.issue_date || daysSinceIssue(r.issue_date) < 0 || daysSinceIssue(r.issue_date) > RECENTLY_ISSUED_DAYS) return false;
     }
     if (f.nearParity) {
       if (r.conversion_value === null || Math.abs(r.conversion_value - 100) > NEAR_PARITY_BAND) return false;
+    }
+    if (f.listedDay1to6) {
+      if (!r.issue_date) return false;
+      const d = daysSinceIssue(r.issue_date);
+      if (d < LISTED_DAY_MIN || d > LISTED_DAY_MAX) return false;
     }
 
     return true;
@@ -88,5 +99,6 @@ export function countActiveFilters(f: FilterState): number {
   if (f.nearMaturity) n++;
   if (f.recentlyIssued) n++;
   if (f.nearParity) n++;
+  if (f.listedDay1to6) n++;
   return n;
 }

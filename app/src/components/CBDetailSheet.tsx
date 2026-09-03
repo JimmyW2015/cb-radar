@@ -1,4 +1,4 @@
-import { fmtDate, fmtNum, fmtPct } from "../lib/format";
+import { fmtDate, fmtDateROC, fmtNum, fmtPct } from "../lib/format";
 import type { BidStats, CBRow } from "../lib/types";
 
 interface Props {
@@ -38,7 +38,7 @@ export function CBDetailSheet({ row, bidStats, onClose }: Props) {
                 <DetailItem label="TCRI" value={row.tcri ?? "-"} />
                 <DetailItem label="擔保情形" value={row.guarantee_situation ?? "-"} />
                 <DetailItem label="發行日" value={fmtDate(row.issue_date)} />
-                <DetailItem label="到期日" value={fmtDate(row.expiry_date)} />
+                <DetailItem label="到期日" value={fmtDateROC(row.expiry_date)} />
                 <DetailItem label="剩餘天數" value={row.remaining_days !== null ? `${row.remaining_days} 天` : "-"} />
                 <DetailItem label="餘額比率" value={row.balance_ratio !== null ? `${fmtNum(row.balance_ratio, 1)}%` : "-"} />
                 <DetailItem label="市值(億)" value={fmtNum(row.market_value, 2)} />

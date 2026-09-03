@@ -19,6 +19,16 @@ export function fmtDate(s: string | null | undefined): string {
   return `${yy}/${mm}/${dd}`;
 }
 
+export function fmtDateROC(s: string | null | undefined): string {
+  if (!s) return "-";
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return "-";
+  const roc = d.getUTCFullYear() - 1911;
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  return `${roc}/${mm}/${dd}`;
+}
+
 export function fmtDateShort(s: string | null | undefined): string {
   if (!s) return "-";
   const d = new Date(s);

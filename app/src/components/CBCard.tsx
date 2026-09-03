@@ -1,4 +1,4 @@
-import { fmtDate, fmtNum, fmtPct } from "../lib/format";
+import { fmtDateROC, fmtNum, fmtPct } from "../lib/format";
 import { changePct } from "../lib/quote";
 import type { CBRow } from "../lib/types";
 
@@ -74,7 +74,7 @@ export function CBCard({ row, watched, onToggleWatch, onClick }: Props) {
         </div>
         <div className="metric">
           <span className="lbl">到期日</span>
-          <span className="val">{fmtDate(row.expiry_date)}</span>
+          <span className="val">{fmtDateROC(row.expiry_date)}</span>
         </div>
         <div className="metric">
           <span className="lbl">餘額比率</span>

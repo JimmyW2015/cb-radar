@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["apple-touch-icon.png"],
       manifest: {
-        name: "轉債雷達 CB Radar",
-        short_name: "轉債雷達",
+        name: "可轉債雷達 CB Radar",
+        short_name: "可轉債雷達",
         description: "台灣可轉換公司債即時報價、預計發行與競拍/詢圈公告追蹤",
         theme_color: "#23395b",
         background_color: "#eef1ec",

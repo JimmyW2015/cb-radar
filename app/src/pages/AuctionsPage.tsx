@@ -144,17 +144,16 @@ export function AuctionsPage() {
 
           <div className="f-group">
             <div className="f-title">擔保情形</div>
-            <div className="chips">
-              {(["all", "guaranteed", "unguaranteed"] as const).map((g) => (
-                <div
-                  key={g}
-                  className={`chip ${filters.guarantee === g ? "on" : ""}`}
-                  onClick={() => setFilters({ ...filters, guarantee: g })}
-                >
-                  {g === "all" ? "全部" : g === "guaranteed" ? "有擔保" : "無擔保"}
-                </div>
-              ))}
-            </div>
+            <select
+              className="sort-select"
+              style={{ marginTop: 0 }}
+              value={filters.guarantee}
+              onChange={(e) => setFilters({ ...filters, guarantee: e.target.value as AuctionFilterState["guarantee"] })}
+            >
+              <option value="all">全部</option>
+              <option value="guaranteed">有擔保</option>
+              <option value="unguaranteed">無擔保</option>
+            </select>
           </div>
 
           <div className="f-group">

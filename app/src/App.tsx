@@ -65,10 +65,10 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "days_desc", label: "剩餘天數 多到少" },
   { key: "stock_change_desc", label: "母股漲跌排行（漲幅優先）" },
   { key: "stock_change_asc", label: "母股漲跌排行（跌幅優先）" },
-  { key: "cb_change_desc", label: "公司債漲跌排行（漲幅優先）" },
-  { key: "cb_change_asc", label: "公司債漲跌排行（跌幅優先）" },
-  { key: "volume_desc", label: "公司債成交量排行 高到低" },
-  { key: "volume_asc", label: "公司債成交量排行 低到高" },
+  { key: "cb_change_desc", label: "CB漲跌排行（漲幅優先）" },
+  { key: "cb_change_asc", label: "CB漲跌排行（跌幅優先）" },
+  { key: "volume_desc", label: "CB成交量排行 高到低" },
+  { key: "volume_asc", label: "CB成交量排行 低到高" },
 ];
 
 export default function App() {
@@ -103,7 +103,7 @@ export default function App() {
       <div className="topbar">
         <div className="topbar-row">
           <div className="brand">
-            轉債雷達
+            可轉債雷達
             <small>CB RADAR · CBAS / TPEx / TWSA</small>
           </div>
           <div className={`market-pill ${marketOpen ? "" : "closed"}`}>
