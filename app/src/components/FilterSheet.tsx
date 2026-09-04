@@ -5,6 +5,7 @@ import {
   MARKET_VALUE_BOUNDS,
   PREMIUM_BOUNDS,
   defaultFilters,
+  type ConversionValueTier,
   type FilterState,
 } from "../lib/filters";
 
@@ -24,12 +25,27 @@ const TCRI_LABELS: [TcriTier, string][] = [
   ["none", "未評等"],
 ];
 
+const CONVERSION_VALUE_LABELS: [ConversionValueTier, string][] = [
+  ["under50", "50 以下"],
+  ["50-80", "50–80"],
+  ["80-150", "80–150"],
+  ["above150", "150 以上"],
+  ["none", "無資料"],
+];
+
 export function FilterSheet({ open, filters, matchCount, onChange, onClose }: Props) {
   function toggleTcri(tier: "1-3" | "4-6" | "7-9" | "none") {
     const next = new Set(filters.tcriTiers);
     if (next.has(tier)) next.delete(tier);
     else next.add(tier);
     onChange({ ...filters, tcriTiers: next });
+  }
+
+  function toggleConversionValue(tier: ConversionValueTier) {
+    const next = new Set(filters.conversionValueTiers);
+    if (next.has(tier)) next.delete(tier);
+    else next.add(tier);
+    onChange({ ...filters, conversionValueTiers: next });
   }
 
   return (
@@ -58,6 +74,12 @@ export function FilterSheet({ open, filters, matchCount, onChange, onClose }: Pr
                 onClick={() => onChange({ ...filters, recentlyIssued: !filters.recentlyIssued })}
               >
                 剛發行（7日內）
+              </div>
+              <div
+                className={`chip ${filters.recentlyListed ? "on" : ""}`}
+                onClick={() => onChange({ ...filters, recentlyListed: !filters.recentlyListed })}
+              >
+                上市3個月內
               </div>
               <div
                 className={`chip ${filters.nearParity ? "on" : ""}`}
@@ -93,6 +115,21 @@ export function FilterSheet({ open, filters, matchCount, onChange, onClose }: Pr
                   key={tier}
                   className={`chip ${filters.tcriTiers.has(tier) ? "on" : ""}`}
                   onClick={() => toggleTcri(tier)}
+                >
+                  {label}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="f-group">
+            <div className="f-title">轉換價值</div>
+            <div className="chips">
+              {CONVERSION_VALUE_LABELS.map(([tier, label]) => (
+                <div
+                  key={tier}
+                  className={`chip ${filters.conversionValueTiers.has(tier) ? "on" : ""}`}
+                  onClick={() => toggleConversionValue(tier)}
                 >
                   {label}
                 </div>
