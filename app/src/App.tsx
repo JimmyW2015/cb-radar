@@ -3,18 +3,20 @@ import { CBListPage, type SortKey } from "./pages/CBListPage";
 import { PipelinePage } from "./pages/PipelinePage";
 import { AuctionsPage } from "./pages/AuctionsPage";
 import { WatchlistPage } from "./pages/WatchlistPage";
+import { HistoryPage } from "./pages/HistoryPage";
 import { FilterSheet } from "./components/FilterSheet";
 import { CBDetailSheet } from "./components/CBDetailSheet";
 import { Login } from "./components/Login";
 import { useCbData } from "./lib/useCbData";
 import { useWatchlist } from "./lib/useWatchlist";
 import { useSimpleTable } from "./lib/useSimpleTable";
+import { useAuctionTimelines } from "./lib/useTimelineData";
 import { useAuth } from "./lib/useAuth";
 import { applyFilters, defaultFilters, countActiveFilters, type FilterState } from "./lib/filters";
 import { isMarketOpen, taipeiTimeString } from "./lib/marketStatus";
-import type { BidStats, CBRow } from "./lib/types";
+import type { BidStats, CBRow, PipelineRow } from "./lib/types";
 
-type Tab = "list" | "pipeline" | "auction" | "watch";
+type Tab = "list" | "pipeline" | "auction" | "history" | "watch";
 
 const TABS: { key: Tab; label: string; icon: ReactNode }[] = [
   {
@@ -46,6 +48,17 @@ const TABS: { key: Tab; label: string; icon: ReactNode }[] = [
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M4 4h16v4l-6 6v6l-4-2v-4l-6-6z" />
+      </svg>
+    ),
+  },
+  {
+    key: "history",
+    label: "歷史",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+        <path d="M3 3v5h5" />
+        <path d="M12 7v5l3 2" />
       </svg>
     ),
   },
@@ -97,6 +110,8 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
   const { rows, loading, error } = useCbData();
   const { watchSet, toggle } = useWatchlist();
   const { rows: bidStatsRows } = useSimpleTable<BidStats>("bid_stats");
+  const { rows: pipelineRows } = useSimpleTable<PipelineRow>("pipeline");
+  const auctionTimelines = useAuctionTimelines();
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30_000);
@@ -185,6 +200,7 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
         )}
         {tab === "pipeline" && <PipelinePage />}
         {tab === "auction" && <AuctionsPage />}
+        {tab === "history" && <HistoryPage />}
         {tab === "watch" && (
           <WatchlistPage rows={rows} watchSet={watchSet} onToggleWatch={toggle} onSelect={setSelected} />
         )}
@@ -197,7 +213,12 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
         onChange={setFilters}
         onClose={() => setFilterOpen(false)}
       />
-      <CBDetailSheet row={selected} bidStats={selectedBidStats} onClose={() => setSelected(null)} />
+      <CBDetailSheet
+        row={selected}
+        bidStats={selectedBidStats}
+        auction={selected ? auctionTimelines.find((a) => a.cb_code === selected.cb_code) ?? null : null}
+        pipeline={selected ? pipelineRows.find((p) => p.cb_code === selected.cb_code) ?? null : null}
+        onClose={() => setSelected(null)} />
 
       <nav className="navbar">
         {TABS.map((t) => (

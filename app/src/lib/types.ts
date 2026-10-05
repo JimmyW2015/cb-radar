@@ -73,7 +73,7 @@ export interface Auction {
   total_lots: number | null;
   bid_opening_date: string | null;
   payment_deadline: string | null;
-  raw_parsed: { full_text?: string } | null;
+  raw_parsed?: { full_text?: string } | null;
   updated_at: string;
 }
 
@@ -125,6 +125,13 @@ export interface BidStats {
   won_qty: number | null;
   won_amount: number | null;
   report_pdf_url: string | null;
+  inst_qualified_count: number | null;
+  inst_qualified_qty: number | null;
+  inst_won_count: number | null;
+  inst_won_qty: number | null;
+  bid_close_date: string | null;
+  stock_close: number | null;
+  conversion_price: number | null;
   price_ladder: PriceLadderEntry[] | null;
   updated_at: string;
 }

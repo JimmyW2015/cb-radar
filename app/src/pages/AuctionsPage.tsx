@@ -3,6 +3,9 @@ import { AuctionCard } from "../components/AuctionCard";
 import { useSimpleTable } from "../lib/useSimpleTable";
 import type { Auction } from "../lib/types";
 
+const AUCTION_COLUMNS =
+  "case_no,report_date,underwriter,company,cb_code,bond_type,method,status,pdf_url,issue_price_pct,conversion_price,conversion_premium_pct,auction_lots,self_retained_lots,total_lots,bid_opening_date,payment_deadline,updated_at";
+
 interface AuctionFilterState {
   search: string;
   year: string; // "" = 全部
@@ -20,7 +23,11 @@ const defaultAuctionFilters: AuctionFilterState = {
 };
 
 export function AuctionsPage() {
-  const { rows, loading, error } = useSimpleTable<Auction>("auctions", { column: "report_date", ascending: false });
+  const { rows, loading, error } = useSimpleTable<Auction>(
+    "auctions",
+    { column: "report_date", ascending: false },
+    { select: AUCTION_COLUMNS, gte: ["report_date", `${new Date().getFullYear() - 1}-01-01`] },
+  );
   const [filters, setFilters] = useState<AuctionFilterState>(defaultAuctionFilters);
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -57,6 +64,7 @@ export function AuctionsPage() {
   return (
     <div className="list">
       <div className="panel-title">競拍／詢圈公告</div>
+      <div className="list-meta"><span>顯示近兩年，更早的請到「歷史」</span></div>
 
       <div className="searchrow" style={{ marginTop: 4 }}>
         <div className="search">

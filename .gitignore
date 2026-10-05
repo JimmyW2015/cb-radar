@@ -7,3 +7,7 @@ __pycache__/
 
 # detailed dev notes stay local-only, not on the public repo
 DEVLOG.md
+
+# 本機行情備份與進度檔
+price_archive/
+.price_progress.json

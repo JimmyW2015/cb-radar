@@ -1,13 +1,19 @@
 import { fmtDateROC, fmtNum, fmtPct } from "../lib/format";
-import type { BidStats, CBRow } from "../lib/types";
+import { BidReport } from "./BidReport";
+import { ExportButton } from "./ExportButton";
+import { CB_EXPORT, CONV_EXPORT, STOCK_EXPORT } from "../lib/exportCsv";
+import type { BidStats, CBRow, PipelineRow } from "../lib/types";
+import { buildTimeline, type AuctionTimelineRow } from "../lib/timeline";
 
 interface Props {
   row: CBRow | null;
   bidStats: BidStats | null;
+  auction: AuctionTimelineRow | null;
+  pipeline: PipelineRow | null;
   onClose: () => void;
 }
 
-export function CBDetailSheet({ row, bidStats, onClose }: Props) {
+export function CBDetailSheet({ row, bidStats, auction, pipeline, onClose }: Props) {
   const open = row !== null;
 
   return (
@@ -51,36 +57,30 @@ export function CBDetailSheet({ row, bidStats, onClose }: Props) {
                 )}
               </div>
 
+              <div className="detail-section-title">歷史行情匯出</div>
+              <div className="export-row">
+                <ExportButton
+                  label="匯出 CB 日K（CSV）"
+                  spec={{ ...CB_EXPORT, eq: ["cb_code", row.cb_code], filename: `${row.cb_code}_${row.cb_name}_日K.csv` }}
+                />
+                <ExportButton
+                  label="匯出每月轉換資料（CSV）"
+                  spec={{ ...CONV_EXPORT, eq: ["cb_code", row.cb_code], filename: `${row.cb_code}_${row.cb_name}_每月轉換.csv` }}
+                />
+                {row.stock_code && (
+                  <ExportButton
+                    label="匯出母股日K（CSV）"
+                    spec={{ ...STOCK_EXPORT, eq: ["stock_code", row.stock_code], filename: `${row.stock_code}_母股日K.csv` }}
+                  />
+                )}
+              </div>
+
+              <div className="detail-section-title">發行時間軸</div>
+              <Timeline events={buildTimeline(row, auction, pipeline)} />
+
               <div className="detail-section-title">開標統計結果</div>
               {bidStats ? (
-                <>
-                  <div className="detail-grid">
-                    <DetailItem label="競拍方式" value={bidStats.auction_method ?? "-"} />
-                    <DetailItem label="主辦承銷商" value={bidStats.underwriter ?? "-"} />
-                    <DetailItem label="開標日期" value={fmtDateROC(bidStats.bid_opening_date)} />
-                    <DetailItem label="最低承銷價格" value={fmtNum(bidStats.floor_price)} />
-                    <DetailItem label="得標加權平均價格" value={fmtNum(bidStats.weighted_avg_price)} />
-                    <DetailItem label="公開承銷價格" value={fmtNum(bidStats.issue_price)} />
-                    <DetailItem label="最低／最高得標價格" value={`${fmtNum(bidStats.min_winning_price)} ／ ${fmtNum(bidStats.max_winning_price)}`} />
-                    <DetailItem
-                      label="合格投標 筆數／數量(仟股)"
-                      value={`${bidStats.qualified_bid_count ?? "-"} ／ ${fmtNum(bidStats.qualified_bid_qty, 0)}`}
-                    />
-                    <DetailItem
-                      label="得標 筆數／數量(仟股)"
-                      value={`${bidStats.won_count ?? "-"} ／ ${fmtNum(bidStats.won_qty, 0)}`}
-                    />
-                    <DetailItem label="得標總金額(仟元)" value={fmtNum(bidStats.won_amount, 0)} />
-                  </div>
-                  {bidStats.price_ladder && bidStats.price_ladder.length > 0 && (
-                    <PriceLadder ladder={bidStats.price_ladder} />
-                  )}
-                  {bidStats.report_pdf_url && (
-                    <a className="pdf-link" href={bidStats.report_pdf_url} target="_blank" rel="noreferrer">
-                      查看開標統計表原始 PDF ↗
-                    </a>
-                  )}
-                </>
+                <BidReport row={row} bid={bidStats} auction={auction} pipeline={pipeline} />
               ) : (
                 <div className="detail-empty">尚未查到這檔的開標統計資料（可能未經競價拍賣，或尚未開標）</div>
               )}
@@ -92,28 +92,29 @@ export function CBDetailSheet({ row, bidStats, onClose }: Props) {
   );
 }
 
+function Timeline({ events }: { events: ReturnType<typeof buildTimeline> }) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (events.length === 0) return <div className="detail-empty">尚無可整理的日期資料</div>;
+  return (
+    <ol className="timeline">
+      {events.map((e) => (
+        <li key={`${e.date}-${e.label}`} className={e.date > today ? "future" : ""}>
+          <span className="tl-date">{fmtDateROC(e.date)}</span>
+          <span className="tl-label">
+            {e.label}
+            {e.note && <small>{e.note}</small>}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 function DetailItem({ label, value, full }: { label: string; value: string; full?: boolean }) {
   return (
     <div className={`detail-item ${full ? "full" : ""}`}>
       <span className="lbl">{label}</span>
       <span className="val">{value}</span>
-    </div>
-  );
-}
-
-function PriceLadder({ ladder }: { ladder: NonNullable<BidStats["price_ladder"]> }) {
-  const top = [...ladder].sort((a, b) => b.price - a.price).slice(0, 8);
-  return (
-    <div className="ladder">
-      <div className="ladder-title">得標價位分布（前 8 高）</div>
-      <div className="ladder-rows">
-        {top.map((row) => (
-          <div className="ladder-row" key={row.seq}>
-            <span className="ladder-price">{fmtNum(row.price)}</span>
-            <span className="ladder-qty">{fmtNum(row.qty, 0)} 仟股</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
