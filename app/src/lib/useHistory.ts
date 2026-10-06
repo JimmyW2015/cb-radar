@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetchAllPages } from "./fetchAllPages";
 import { supabase } from "./supabase";
 
 export interface HistoryRow {
@@ -30,8 +31,6 @@ export interface HistoryRow {
 
 const COLUMNS =
   "case_no,report_date,underwriter,company,cb_code,bond_type,method,status,pdf_url,issue_price_pct,conversion_price,conversion_premium_pct,auction_lots,bid_opening_date,payment_deadline,timeline:raw_parsed->timeline";
-const PAGE = 1000;
-
 export function useHistory() {
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,27 +38,17 @@ export function useHistory() {
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      const all: HistoryRow[] = [];
-      for (let from = 0; ; from += PAGE) {
-        const { data, error } = await supabase
-          .from("auctions")
-          .select(COLUMNS)
-          .order("report_date", { ascending: false })
-          .order("case_no", { ascending: false })
-          .range(from, from + PAGE - 1);
-        if (cancelled) return;
-        if (error) {
-          setError(error.message);
-          break;
-        }
-        all.push(...((data ?? []) as unknown as HistoryRow[]));
-        if (!data || data.length < PAGE) break;
-      }
-      setRows(all);
-      setLoading(false);
-    }
-    load();
+    fetchAllPages<HistoryRow>((from, to) =>
+      supabase
+        .from("auctions")
+        .select(COLUMNS)
+        .order("report_date", { ascending: false })
+        .order("case_no", { ascending: false })
+        .range(from, to),
+    )
+      .then((all) => !cancelled && setRows(all))
+      .catch((e: Error) => !cancelled && setError(e.message))
+      .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };

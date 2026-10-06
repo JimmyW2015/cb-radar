@@ -10,7 +10,6 @@ export interface AuctionTimeline {
 }
 
 export interface AuctionTimelineRow {
-  case_no: string;
   cb_code: string | null;
   report_date: string | null;
   bid_opening_date: string | null;

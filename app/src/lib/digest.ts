@@ -142,21 +142,10 @@ ${d.note ?? "日報尚未產出，預計約 18:30 產出。"}
   return out.join("\n");
 }
 
-export function downloadText(filename: string, text: string): void {
-  const blob = new Blob(["﻿" + text], { type: "text/markdown;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
-
-export const PENDING_NOTE =
-  "日報尚未產出。今日若有交易，官方盤後行情公布後會自動產生，預計約 18:30 產出（若 18:30 尚未公布，21:30 會再補產一次）。";
-
 // 台北時間今天的日期（YYYY-MM-DD）與星期
 export function taipeiToday(): { date: string; dow: number } {
   const t = new Date(Date.now() + 8 * 3600 * 1000);
   return { date: t.toISOString().slice(0, 10), dow: t.getUTCDay() };
 }
+
+export { downloadText } from "./download";

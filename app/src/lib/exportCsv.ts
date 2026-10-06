@@ -1,3 +1,5 @@
+import { downloadText } from "./download";
+import { fetchAllPages } from "./fetchAllPages";
 import { supabase } from "./supabase";
 
 export interface ExportSpec {
@@ -119,28 +121,22 @@ export const CONV_EXPORT: Pick<ExportSpec, "table" | "columns" | "orderBy" | "da
   orderBy: ["cb_code", "month"],
 };
 
-const PAGE = 1000;
-
 function csvCell(v: unknown): string {
   if (v === null || v === undefined) return "";
   const s = String(v);
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-async function fetchRange(spec: ExportSpec, select: string, gte?: string, lt?: string): Promise<Row[]> {
-  const out: Row[] = [];
-  for (let from = 0; ; from += PAGE) {
+function fetchRange(spec: ExportSpec, select: string, gte?: string, lt?: string): Promise<Row[]> {
+  const dateCol = spec.dateCol ?? "trade_date";
+  return fetchAllPages<Row>((from, to) => {
     let q = supabase.from(spec.table).select(select);
     if (spec.eq) q = q.eq(spec.eq[0], spec.eq[1]);
-    if (gte) q = q.gte(spec.dateCol ?? "trade_date", gte);
-    if (lt) q = q.lt(spec.dateCol ?? "trade_date", lt);
+    if (gte) q = q.gte(dateCol, gte);
+    if (lt) q = q.lt(dateCol, lt);
     for (const col of spec.orderBy) q = q.order(col, { ascending: true });
-    const { data, error } = await q.range(from, from + PAGE - 1);
-    if (error) throw new Error(error.message);
-    const rows = (data ?? []) as unknown as Row[];
-    out.push(...rows);
-    if (rows.length < PAGE) return out;
-  }
+    return q.range(from, to);
+  });
 }
 
 function monthRanges(start: [number, number] = [2021, 8]): [string, string][] {
@@ -175,27 +171,21 @@ export async function exportCsv(spec: ExportSpec, onProgress?: (rows: number) =>
   }
   onProgress?.(all.length);
 
-  all.sort((x, y) => {
-    for (const col of spec.orderBy) {
-      const a = String(x[col] ?? "");
-      const b = String(y[col] ?? "");
-      if (a !== b) return a < b ? -1 : 1;
-    }
-    return 0;
-  });
+  const keyOf = (r: Row) => spec.orderBy.map((c) => String(r[c] ?? ""));
+  const sorted = all
+    .map((r) => [keyOf(r), r] as const)
+    .sort(([kx], [ky]) => {
+      for (let i = 0; i < kx.length; i++) if (kx[i] !== ky[i]) return kx[i] < ky[i] ? -1 : 1;
+      return 0;
+    })
+    .map(([, r]) => r);
 
-  const finalRows = spec.prepare ? await spec.prepare(all) : all;
+  const finalRows = spec.prepare ? await spec.prepare(sorted) : sorted;
   const lines = [spec.columns.map(([, h]) => csvCell(h)).join(",")];
   for (const raw of finalRows) {
     const r = spec.derive ? spec.derive(raw) : raw;
     lines.push(spec.columns.map(([c]) => csvCell(r[c])).join(","));
   }
-  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = spec.filename;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  downloadText(spec.filename, lines.join("\r\n"), "text/csv");
   return lines.length - 1;
 }

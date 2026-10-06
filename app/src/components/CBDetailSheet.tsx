@@ -1,5 +1,7 @@
 import { fmtDateROC, fmtNum, fmtPct } from "../lib/format";
 import { BidReport } from "./BidReport";
+import { taipeiToday } from "../lib/digest";
+import { evalConditions } from "../lib/signals";
 import { ExportButton } from "./ExportButton";
 import { CB_EXPORT, CONV_EXPORT, STOCK_EXPORT } from "../lib/exportCsv";
 import type { BidStats, CBRow, PipelineRow } from "../lib/types";
@@ -15,6 +17,7 @@ interface Props {
 
 export function CBDetailSheet({ row, bidStats, auction, pipeline, onClose }: Props) {
   const open = row !== null;
+  const conds = row ? evalConditions(row) : [];
 
   return (
     <>
@@ -57,6 +60,19 @@ export function CBDetailSheet({ row, bidStats, auction, pipeline, onClose }: Pro
                 )}
               </div>
 
+              <div className="detail-section-title">
+                買進條件檢查（{conds.filter((c) => c.ok).length}/{conds.length}）
+              </div>
+              <ul className="cond-list">
+                {conds.map((c) => (
+                  <li key={c.key} className={c.ok ? "ok" : "no"}>
+                    <span className="mark">{c.ok ? "✓" : "✗"}</span>
+                    <span className="lbl">{c.label}</span>
+                    <span className="det">{c.detail}</span>
+                  </li>
+                ))}
+              </ul>
+
               <div className="detail-section-title">歷史行情匯出</div>
               <div className="export-row">
                 <ExportButton
@@ -93,7 +109,7 @@ export function CBDetailSheet({ row, bidStats, auction, pipeline, onClose }: Pro
 }
 
 function Timeline({ events }: { events: ReturnType<typeof buildTimeline> }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = taipeiToday().date;
   if (events.length === 0) return <div className="detail-empty">尚無可整理的日期資料</div>;
   return (
     <ol className="timeline">

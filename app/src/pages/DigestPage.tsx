@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetchAllPages } from "../lib/fetchAllPages";
 import { supabase } from "../lib/supabase";
 import { fmtDateROC } from "../lib/format";
 import {
@@ -9,13 +10,10 @@ import {
   volText,
   weekdayOf,
   type DigestCb,
-  PENDING_NOTE,
   taipeiToday,
   type DigestRow,
   type DigestStock,
 } from "../lib/digest";
-
-const PAGE = 1000;
 
 function useDigests() {
   const [rows, setRows] = useState<DigestRow[]>([]);
@@ -24,26 +22,16 @@ function useDigests() {
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      const all: DigestRow[] = [];
-      for (let from = 0; ; from += PAGE) {
-        const { data, error } = await supabase
-          .from("daily_digests")
-          .select("digest_date,status,generated_at,data")
-          .order("digest_date", { ascending: false })
-          .range(from, from + PAGE - 1);
-        if (cancelled) return;
-        if (error) {
-          setError(error.message);
-          break;
-        }
-        all.push(...((data ?? []) as unknown as DigestRow[]));
-        if (!data || data.length < PAGE) break;
-      }
-      setRows(all);
-      setLoading(false);
-    }
-    load();
+    fetchAllPages<DigestRow>((from, to) =>
+      supabase
+        .from("daily_digests")
+        .select("digest_date,status,generated_at,data")
+        .order("digest_date", { ascending: false })
+        .range(from, to),
+    )
+      .then((all) => !cancelled && setRows(all))
+      .catch((e: Error) => !cancelled && setError(e.message))
+      .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };
@@ -54,12 +42,11 @@ function useDigests() {
 
 export function DigestPage() {
   const { rows: loaded, loading, error } = useDigests();
-  // 今天（平日）還沒有任何紀錄時，先顯示「尚未產出」，不要讓使用者以為沒有這天
+  // 今天（平日）資料庫還沒有紀錄（18:30 排程前）時，在清單最上面補一張「尚未產出」說明卡，不混進真實資料
   const today = taipeiToday();
-  const rows: DigestRow[] =
-    !loading && !error && today.dow >= 1 && today.dow <= 5 && !loaded.some((r) => r.digest_date === today.date)
-      ? [{ digest_date: today.date, status: "pending", generated_at: "", data: { date: today.date, note: PENDING_NOTE } }, ...loaded]
-      : loaded;
+  const rows = loaded;
+  const showPlaceholder =
+    !loading && !error && today.dow >= 1 && today.dow <= 5 && !loaded.some((r) => r.digest_date === today.date);
   const [openDate, setOpenDate] = useState<string | null>(null);
   const [shown, setShown] = useState(30);
 
@@ -88,6 +75,19 @@ export function DigestPage() {
       {loading && <div className="state-msg">載入中…</div>}
       {error && <div className="state-msg error">讀取失敗：{error}</div>}
       {!loading && !error && rows.length === 0 && <div className="state-msg">還沒有日報</div>}
+
+      {showPlaceholder && (
+        <div className="a-card digest pending">
+          <div className="digest-head">
+            <div>
+              <div className="digest-date">
+                {fmtDateROC(today.date)}（{weekdayOf(today.date)}）<span className="h-status pending">尚未產出</span>
+              </div>
+              <div className="digest-sub">日報尚未產出，預計約 18:30 產出</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {rows.slice(0, shown).map((r) => (
         <DigestItem key={r.digest_date} row={r} open={openDate === r.digest_date} onToggle={() => setOpenDate(openDate === r.digest_date ? null : r.digest_date)} />

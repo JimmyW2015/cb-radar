@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { HistoryCard, STATUS_LABEL, historyStatus, type HistoryStatus } from "../components/HistoryCard";
 import { ExportButton } from "../components/ExportButton";
 import { CB_EXPORT, CONV_EXPORT, STOCK_EXPORT } from "../lib/exportCsv";
+import { hasGuarantee } from "../lib/bond";
 import { useHistory } from "../lib/useHistory";
 
 const PAGE_SIZE = 40;
@@ -26,7 +27,7 @@ export function HistoryPage() {
       if (status !== "all" && s !== status) return false;
       if (q && !r.company.toLowerCase().includes(q) && !(r.cb_code ?? "").includes(q)) return false;
       if (year && r.report_date?.slice(0, 4) !== year) return false;
-      const isGuaranteed = r.bond_type && !r.bond_type.includes("無");
+      const isGuaranteed = hasGuarantee(r.bond_type);
       if (guarantee === "guaranteed" && !isGuaranteed) return false;
       if (guarantee === "unguaranteed" && isGuaranteed) return false;
       return true;

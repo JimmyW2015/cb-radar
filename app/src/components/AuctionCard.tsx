@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { fmtDateROC, fmtNum } from "../lib/format";
 import type { Auction, BidStats, PipelineRow } from "../lib/types";
+import { tcriDigit } from "../lib/bond";
 import { BidReport } from "./BidReport";
 import type { AuctionTimeline } from "../lib/timeline";
 
@@ -56,8 +57,8 @@ export function AuctionCard({ auction, bid = null, pipeline = null, timeline = n
             row={{
               cb_code: bid.cb_code,
               cb_name: bid.cb_name ?? auction.company,
-              guarantee_situation: auction.bond_type?.includes("無") ? "無" : auction.bond_type ? "有" : null,
-              tcri: (tcri ?? pipeline?.tcri ?? "").match(/\d/)?.[0] ?? null,
+              guarantee_situation: auction.bond_type,
+              tcri: tcriDigit(tcri ?? pipeline?.tcri),
             }}
             bid={bid}
             auction={{ auction_lots: auction.auction_lots, timeline }}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 import { isQuoteRefreshWindow } from "./marketStatus";
-import type { Bond, CBRow, Quote, Stock } from "./types";
+import type { Bond, CbSignal, CBRow, Quote, Stock } from "./types";
 
 export function useCbData() {
   const [rows, setRows] = useState<CBRow[]>([]);
@@ -12,10 +12,11 @@ export function useCbData() {
   async function load() {
     setLoading(true);
     setError(null);
-    const [bondsRes, stocksRes, quotesRes] = await Promise.all([
+    const [bondsRes, stocksRes, quotesRes, signalsRes] = await Promise.all([
       supabase.from("bonds").select("*"),
       supabase.from("stocks").select("*"),
       supabase.from("quotes").select("*"),
+      supabase.from("cb_signals").select("*"),
     ]);
 
     if (bondsRes.error) setError(bondsRes.error.message);
@@ -26,6 +27,7 @@ export function useCbData() {
     const stocks = (stocksRes.data ?? []) as Stock[];
     const quotes = (quotesRes.data ?? []) as Quote[];
 
+    const signalByCb = new Map(((signalsRes.data ?? []) as CbSignal[]).map((x) => [x.cb_code, x]));
     const stockByCode = new Map(stocks.map((s) => [s.stock_code, s]));
     const quoteByRef = new Map<string, Quote>();
     for (const q of quotes) quoteByRef.set(`${q.type}:${q.ref_code}`, q);
@@ -35,6 +37,7 @@ export function useCbData() {
       stock: b.stock_code ? stockByCode.get(b.stock_code) ?? null : null,
       stockQuote: b.stock_code ? quoteByRef.get(`stock:${b.stock_code}`) ?? null : null,
       cbQuote: quoteByRef.get(`cb:${b.cb_code}`) ?? null,
+      signal: signalByCb.get(b.cb_code) ?? null,
     }));
 
     setRows(merged);

@@ -1,3 +1,4 @@
+import { hasGuarantee } from "../lib/bond";
 import { fmtDateROC, fmtNum, fmtPct } from "../lib/format";
 import { changePct } from "../lib/quote";
 import type { CBRow } from "../lib/types";
@@ -12,7 +13,7 @@ interface Props {
 export function CBCard({ row, watched, onToggleWatch, onClick }: Props) {
   const price = row.cbQuote?.price ?? row.convertible_bond_market_price;
   const premium = row.premium_rate;
-  const isGuaranteed = row.guarantee_situation && !row.guarantee_situation.includes("無");
+  const isGuaranteed = hasGuarantee(row.guarantee_situation);
 
   const stockChg = changePct(row.stockQuote);
   const cbChg = changePct(row.cbQuote);

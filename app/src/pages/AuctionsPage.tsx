@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { AuctionCard } from "../components/AuctionCard";
+import { hasGuarantee } from "../lib/bond";
 import { useSimpleTable } from "../lib/useSimpleTable";
 import type { Auction, BidStats, PipelineRow } from "../lib/types";
-import type { AuctionTimeline } from "../lib/timeline";
 
 const AUCTION_COLUMNS =
   "case_no,report_date,underwriter,company,cb_code,bond_type,method,status,pdf_url,issue_price_pct,conversion_price,conversion_premium_pct,auction_lots,self_retained_lots,total_lots,bid_opening_date,payment_deadline,updated_at,timeline:raw_parsed->timeline";
@@ -23,14 +23,15 @@ const defaultAuctionFilters: AuctionFilterState = {
   guarantee: "all",
 };
 
-export function AuctionsPage() {
+export function AuctionsPage({ bidRows, pipelineRows }: { bidRows: BidStats[]; pipelineRows: PipelineRow[] }) {
   const { rows, loading, error } = useSimpleTable<Auction>(
     "auctions",
     { column: "report_date", ascending: false },
     { select: AUCTION_COLUMNS, gte: ["report_date", `${new Date().getFullYear() - 1}-01-01`] },
   );
-  const { rows: bidRows } = useSimpleTable<BidStats>("bid_stats");
-  const { rows: pipelineRows } = useSimpleTable<PipelineRow>("pipeline");
+  const bidByCase = useMemo(() => new Map(bidRows.filter((b) => b.case_no).map((b) => [b.case_no, b])), [bidRows]);
+  const bidByCb = useMemo(() => new Map(bidRows.map((b) => [b.cb_code, b])), [bidRows]);
+  const pipelineByCb = useMemo(() => new Map(pipelineRows.filter((p) => p.cb_code).map((p) => [p.cb_code, p])), [pipelineRows]);
   const [filters, setFilters] = useState<AuctionFilterState>(defaultAuctionFilters);
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -50,7 +51,7 @@ export function AuctionsPage() {
       if (filters.year && a.report_date?.slice(0, 4) !== filters.year) return false;
       if (filters.month && String(Number(a.report_date?.slice(5, 7))) !== filters.month) return false;
       if (filters.underwriter && a.underwriter !== filters.underwriter) return false;
-      const isGuaranteed = a.bond_type && !a.bond_type.includes("無");
+      const isGuaranteed = hasGuarantee(a.bond_type);
       if (filters.guarantee === "guaranteed" && !isGuaranteed) return false;
       if (filters.guarantee === "unguaranteed" && isGuaranteed) return false;
       return true;
@@ -101,10 +102,9 @@ export function AuctionsPage() {
       {!loading && !error && filtered.length === 0 && <div className="state-msg">沒有符合篩選條件的公告</div>}
 
       {filtered.map((a) => {
-        const bid = bidRows.find((b) => b.case_no === a.case_no) ?? (a.cb_code ? bidRows.find((b) => b.cb_code === a.cb_code) : undefined) ?? null;
-        const pipeline = bid ? pipelineRows.find((p) => p.cb_code === bid.cb_code) ?? null : null;
-        const timeline = (a as unknown as { timeline?: AuctionTimeline | null }).timeline ?? null;
-        return <AuctionCard auction={a} key={a.case_no} bid={bid} pipeline={pipeline} timeline={timeline} />;
+        const bid = bidByCase.get(a.case_no) ?? (a.cb_code ? bidByCb.get(a.cb_code) : undefined) ?? null;
+        const pipeline = bid ? pipelineByCb.get(bid.cb_code) ?? null : null;
+        return <AuctionCard auction={a} key={a.case_no} bid={bid} pipeline={pipeline} timeline={a.timeline ?? null} />;
       })}
 
       <div className={`sheet-overlay ${sheetOpen ? "open" : ""}`} onClick={() => setSheetOpen(false)} />

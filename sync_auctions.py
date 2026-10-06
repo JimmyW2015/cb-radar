@@ -15,6 +15,7 @@
   4. 用 Windows 工作排程器每天排程執行一次（建議傍晚收盤後，公告多在盤後更新）。
 """
 
+import functools
 import json
 import os
 import re
@@ -550,7 +551,7 @@ def backfill_timeline(url: str, key: str, dry_run: bool = False):
         return fetch_all(url, key, table, select)
 
     auctions = get("auctions", "case_no,company,underwriter,bid_opening_date,cb_code,conversion_price,raw_parsed")
-    stats = get("bid_stats", "cb_code,cb_name,underwriter,bid_opening_date")
+    stats = get("bid_stats", "cb_code,cb_name,underwriter,bid_opening_date,case_no")
     names = {s["stock_code"]: _norm(s["name"]) for s in get("stocks", "stock_code,name") if s.get("name")}
     pool = {}
     for b in get("bonds", "cb_code,cb_name,stock_code"):
@@ -661,7 +662,10 @@ def backfill_timeline(url: str, key: str, dry_run: bool = False):
             continue
         updated += 1
     if not dry_run:
+        current_case = {x["cb_code"]: x.get("case_no") for x in stats}
         for code, case_no in case_link.items():
+            if current_case.get(code) == case_no:
+                continue  # 已經是這個案號，不必每次都重送
             requests.patch(f"{url}/rest/v1/bid_stats", params={"cb_code": f"eq.{code}"}, json={"case_no": case_no},
                            headers={**headers, "Content-Type": "application/json", "Prefer": "return=minimal"}, timeout=30)
         for code, cp in pending_cp.items():
@@ -684,6 +688,7 @@ def _num(x):
         return None
 
 
+@functools.lru_cache(maxsize=None)
 def fetch_month_closes(stock_code: str, market: str, year: int, month: int) -> dict:
     """回傳 {YYYY-MM-DD: 收盤價}，來源為證交所／櫃買中心官方個股日成交資訊。"""
     hdr = {"User-Agent": "Mozilla/5.0"}

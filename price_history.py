@@ -11,6 +11,7 @@
 寫入 Supabase 的 cb_prices / stock_prices（只增不減，資料庫有禁止刪除的 trigger）。
 同一日期重跑是安全的（upsert）。進度記在 .price_progress.json，中斷後可續跑。
 """
+import functools
 import json
 import os
 import re
@@ -127,6 +128,7 @@ def save_progress(p):
 
 # ---------- CB：櫃買中心「轉(交)換債日統計報表」每日 CSV ----------
 
+@functools.lru_cache(maxsize=None)
 def cb_files_for_month(y, m):
     """回傳 {YYYY-MM-DD: csv 相對路徑}"""
     r = post_retry(f"{TPEX}/www/zh-tw/bond/cbDaily",
@@ -249,14 +251,16 @@ def run_stock(db, since: date, until: date):
             y, m = y + 1, 1
     days.sort()
     prog = load_progress()
-    done = set(prog["stock"])
+    # IGNORE_FIRST=1：不限制「從該股最早一檔 CB 上市日起」，把所有母股都補到指定起日（用來補足新母股的 60 日均線所需歷史）
+    ignore_first = os.environ.get("IGNORE_FIRST") == "1"
+    done = set() if ignore_first else set(prog["stock"])
     total = 0
     for d in days:
         if d in done:
             continue
         rows = []
         for market, fn in (("TSE", twse_day), ("TPEx", tpex_day)):
-            codes = [c for c, mk in stocks.items() if mk == market and d >= first.get(c, "9999")]
+            codes = [c for c, mk in stocks.items() if mk == market and (ignore_first or d >= first.get(c, "9999"))]
             if not codes:
                 continue
             data = fn(d)
@@ -268,8 +272,9 @@ def run_stock(db, since: date, until: date):
             db.upsert("stock_prices", rows, "stock_code,trade_date")
         total += len(rows)
         done.add(d)
-        prog["stock"] = sorted(done)
-        save_progress(prog)
+        if not ignore_first:
+            prog["stock"] = sorted(done)
+            save_progress(prog)
         print(f"[stock] {d} {len(rows)} 筆", flush=True)
     print(f"[stock] 完成，共寫入 {total} 筆")
 
@@ -400,16 +405,7 @@ def export_all(db):
     out_dir.mkdir(exist_ok=True)
     stamp = date.today().isoformat()
     for table, order in EXPORT_ORDER.items():
-        rows, off = [], 0
-        while True:
-            r = requests.get(f"{db.url}/rest/v1/{table}", params={"select": "*", "order": order, "limit": "1000", "offset": str(off)},
-                             headers=db.h, timeout=90)
-            r.raise_for_status()
-            chunk = r.json()
-            rows += chunk
-            if len(chunk) < 1000:
-                break
-            off += 1000
+        rows = db.select(table, "*", order=order)
         path = out_dir / f"{table}_{stamp}.csv"
         if table == "cb_conversions":
             rows = prepare_conversions(rows, db)

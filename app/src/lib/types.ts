@@ -1,3 +1,4 @@
+import type { AuctionTimeline } from "./timeline";
 export interface Bond {
   cb_code: string;
   cb_name: string;
@@ -46,6 +47,8 @@ export interface Quote {
   price: number | null;
   bid: number | null;
   ask: number | null;
+  bid_qty?: number | null;
+  ask_qty?: number | null;
   high: number | null;
   low: number | null;
   open: number | null;
@@ -73,7 +76,7 @@ export interface Auction {
   total_lots: number | null;
   bid_opening_date: string | null;
   payment_deadline: string | null;
-  raw_parsed?: { full_text?: string } | null;
+  timeline?: AuctionTimeline | null;
   updated_at: string;
 }
 
@@ -138,7 +141,15 @@ export interface BidStats {
 }
 
 // Merged view used by the CB list screen
+export interface CbSignal {
+  cb_code: string;
+  avg_amount_20d: number | null;
+  ma20: number | null;
+  ma60: number | null;
+}
+
 export interface CBRow extends Bond {
+  signal: CbSignal | null;
   stockQuote: Quote | null;
   cbQuote: Quote | null;
   stock: Stock | null;

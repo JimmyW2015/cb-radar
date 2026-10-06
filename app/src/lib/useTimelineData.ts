@@ -7,7 +7,7 @@ export function useAuctionTimelines() {
   useEffect(() => {
     supabase
       .from("auctions")
-      .select("case_no,cb_code,report_date,bid_opening_date,payment_deadline,conversion_price,auction_lots,timeline:raw_parsed->timeline")
+      .select("cb_code,report_date,bid_opening_date,payment_deadline,conversion_price,auction_lots,timeline:raw_parsed->timeline")
       .not("cb_code", "is", null)
       .then(({ data }) => setRows((data ?? []) as unknown as AuctionTimelineRow[]));
   }, []);

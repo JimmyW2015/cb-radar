@@ -211,7 +211,7 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
           />
         )}
         {tab === "pipeline" && <PipelinePage />}
-        {tab === "auction" && <AuctionsPage />}
+        {tab === "auction" && <AuctionsPage bidRows={bidStatsRows} pipelineRows={pipelineRows} />}
         {tab === "digest" && <DigestPage />}
         {tab === "history" && <HistoryPage />}
         {tab === "watch" && (

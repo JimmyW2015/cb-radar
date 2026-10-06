@@ -1,4 +1,5 @@
 import { analyzeBid } from "../lib/bidReport";
+import { hasGuarantee } from "../lib/bond";
 import { fmtDateROC, fmtNum } from "../lib/format";
 import type { AuctionTimelineRow } from "../lib/timeline";
 import type { BidStats, PipelineRow } from "../lib/types";
@@ -28,7 +29,7 @@ const TOP_Y = 26;
 export function BidReport({ row, bid, auction, pipeline }: Props) {
   const lots = auction?.auction_lots ?? null;
   const a = analyzeBid(bid, lots);
-  const guarantee = row.guarantee_situation?.includes("無") ? "無擔保CB" : row.guarantee_situation ? "有擔保CB" : "CB";
+  const guarantee = !row.guarantee_situation ? "CB" : hasGuarantee(row.guarantee_situation) ? "有擔保CB" : "無擔保CB";
   const listing = pipeline?.listing_day ?? auction?.timeline?.listing_date_planned ?? null;
   const yi = bid.won_amount != null ? bid.won_amount / 1e5 : null;
   const maxFootQty = a ? Math.max(...a.footprints.map((x) => x.qty)) : 0;

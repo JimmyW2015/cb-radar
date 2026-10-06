@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { CBCard } from "../components/CBCard";
+import { CBRowCompact } from "../components/CBRowCompact";
+import { usePersistedState } from "../lib/usePersistedState";
 import { applyFilters, type FilterState } from "../lib/filters";
 import { changePct } from "../lib/quote";
 import type { CBRow } from "../lib/types";
@@ -54,7 +56,28 @@ export function sortRows(rows: CBRow[], sort: SortKey): CBRow[] {
   }
 }
 
+type ViewMode = "card" | "list";
+type GroupMode = "none" | "industry";
+
+interface Group {
+  industry: string;
+  rows: CBRow[];
+}
+
+const NO_INDUSTRY = "其他／未分類";
+
 export function CBListPage({ rows, loading, error, search, filters, watchSet, onToggleWatch, onSelect, sort }: Props) {
+  const [view, changeView] = usePersistedState<ViewMode>("cb-radar:list-view", "card", ["card", "list"]);
+  const [group, changeGroup] = usePersistedState<GroupMode>("cb-radar:list-group", "none", ["none", "industry"]);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  function toggleCollapsed(code: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      return next;
+    });
+  }
   const filtered = useMemo(() => {
     let r = applyFilters(rows, filters);
     if (search.trim()) {
@@ -66,9 +89,52 @@ export function CBListPage({ rows, loading, error, search, filters, watchSet, on
     return sortRows(r, sort);
   }, [rows, filters, search, sort]);
 
+  // 同產業分組：產業的順序依目前排序下最前面那檔 CB；沒有產業別的放最後
+  const grouped = useMemo(() => {
+    if (group !== "industry") return null;
+    const map = new Map<string, Group>();
+    for (const r of filtered) {
+      const ind = r.stock?.industry || NO_INDUSTRY;
+      const g = map.get(ind) ?? { industry: ind, rows: [] };
+      g.rows.push(r);
+      map.set(ind, g);
+    }
+    const all = [...map.values()];
+    return [...all.filter((g) => g.industry !== NO_INDUSTRY), ...all.filter((g) => g.industry === NO_INDUSTRY)];
+  }, [filtered, group]);
+
+  function renderRow(row: CBRow) {
+    return view === "list" ? (
+      <CBRowCompact key={row.cb_code} row={row} watched={watchSet.has(row.cb_code)} onToggleWatch={onToggleWatch} onClick={() => onSelect(row)} />
+    ) : (
+      <CBCard key={row.cb_code} row={row} watched={watchSet.has(row.cb_code)} onToggleWatch={onToggleWatch} onClick={() => onSelect(row)} />
+    );
+  }
+
   return (
     <div className="list">
-      <div className="panel-title">CB 總表</div>
+      <div className="panel-head">
+        <div className="panel-title">CB 總表</div>
+        <div className="view-toggle" role="tablist" aria-label="檢視模式">
+          <button className={view === "card" ? "on" : ""} onClick={() => changeView("card")} role="tab" aria-selected={view === "card"}>
+            卡片
+          </button>
+          <button className={view === "list" ? "on" : ""} onClick={() => changeView("list")} role="tab" aria-selected={view === "list"}>
+            列表
+          </button>
+        </div>
+      </div>
+      <div className="group-row">
+        <span className="group-label">分組</span>
+        <div className="view-toggle" role="tablist" aria-label="分組方式">
+          <button className={group === "none" ? "on" : ""} onClick={() => changeGroup("none")} role="tab" aria-selected={group === "none"}>
+            不分組
+          </button>
+          <button className={group === "industry" ? "on" : ""} onClick={() => changeGroup("industry")} role="tab" aria-selected={group === "industry"}>
+            同產業
+          </button>
+        </div>
+      </div>
       <div className="panel-sub">資料來源：統一證券 CBAS + TWSE MIS · 每幾分鐘更新</div>
       <div className="list-meta">
         <span>
@@ -80,15 +146,24 @@ export function CBListPage({ rows, loading, error, search, filters, watchSet, on
       {error && <div className="state-msg error">讀取失敗：{error}</div>}
       {!loading && !error && filtered.length === 0 && <div className="state-msg">沒有符合篩選條件的CB</div>}
 
-      {filtered.map((row) => (
-        <CBCard
-          key={row.cb_code}
-          row={row}
-          watched={watchSet.has(row.cb_code)}
-          onToggleWatch={onToggleWatch}
-          onClick={() => onSelect(row)}
-        />
-      ))}
+      {!grouped && filtered.map(renderRow)}
+
+      {grouped &&
+        grouped.map((g) => {
+          const open = !collapsed.has(g.industry);
+          return (
+            <div className="cgroup" key={g.industry}>
+              <div className="cgroup-head" onClick={() => toggleCollapsed(g.industry)}>
+                <div className="cg-name">
+                  <b>{g.industry}</b>
+                  <span className="cg-count">{g.rows.length} 檔 CB</span>
+                </div>
+                <span className="cg-caret">{open ? "▴" : "▾"}</span>
+              </div>
+              {open && <div className="cgroup-body">{g.rows.map(renderRow)}</div>}
+            </div>
+          );
+        })}
     </div>
   );
 }

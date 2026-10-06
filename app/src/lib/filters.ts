@@ -1,3 +1,4 @@
+import { hasGuarantee } from "./bond";
 import type { CBRow } from "./types";
 
 export type ConversionValueTier = "under50" | "50-80" | "80-150" | "above150" | "none";
@@ -62,8 +63,8 @@ function conversionValueTier(cv: number | null): ConversionValueTier {
 
 export function applyFilters(rows: CBRow[], f: FilterState): CBRow[] {
   return rows.filter((r) => {
-    if (f.guarantee === "guaranteed" && (!r.guarantee_situation || r.guarantee_situation.includes("無"))) return false;
-    if (f.guarantee === "unguaranteed" && r.guarantee_situation && !r.guarantee_situation.includes("無")) return false;
+    if (f.guarantee === "guaranteed" && !hasGuarantee(r.guarantee_situation)) return false;
+    if (f.guarantee === "unguaranteed" && hasGuarantee(r.guarantee_situation)) return false;
 
     if (!f.tcriTiers.has(tcriTier(r.tcri))) return false;
     if (!f.conversionValueTiers.has(conversionValueTier(r.conversion_value))) return false;
