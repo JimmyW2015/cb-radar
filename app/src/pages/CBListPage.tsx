@@ -69,9 +69,9 @@ const NO_INDUSTRY = "其他／未分類";
 export function CBListPage({ rows, loading, error, search, filters, watchSet, onToggleWatch, onSelect, sort }: Props) {
   const [view, changeView] = usePersistedState<ViewMode>("cb-radar:list-view", "card", ["card", "list"]);
   const [group, changeGroup] = usePersistedState<GroupMode>("cb-radar:list-group", "none", ["none", "industry"]);
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  function toggleCollapsed(code: string) {
-    setCollapsed((prev) => {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  function toggleExpanded(code: string) {
+    setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(code)) next.delete(code);
       else next.add(code);
@@ -150,10 +150,10 @@ export function CBListPage({ rows, loading, error, search, filters, watchSet, on
 
       {grouped &&
         grouped.map((g) => {
-          const open = !collapsed.has(g.industry);
+          const open = expanded.has(g.industry);
           return (
             <div className="cgroup" key={g.industry}>
-              <div className="cgroup-head" onClick={() => toggleCollapsed(g.industry)}>
+              <div className="cgroup-head" onClick={() => toggleExpanded(g.industry)}>
                 <div className="cg-name">
                   <b>{g.industry}</b>
                   <span className="cg-count">{g.rows.length} 檔 CB</span>
