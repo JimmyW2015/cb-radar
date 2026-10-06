@@ -966,3 +966,20 @@ body {
 .export-btn { border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); border-radius: 10px; padding: 8px 12px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
 .export-btn:disabled { opacity: 0.6; }
 .export-msg { font-size: 12px; color: var(--ink-faint); }
+
+.a-card.digest { padding: 0; }
+.digest-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
+.digest-date { font-family: "Noto Serif TC", serif; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.digest-sub { margin-top: 3px; font-size: 13px; color: var(--ink-soft); }
+.digest-caret { color: var(--ink-faint); font-size: 14px; }
+.a-card.digest.closed .digest-date { color: var(--ink-faint); }
+.digest-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 12px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.digest-sec h4 { margin: 0 0 6px; font-family: "Noto Serif TC", serif; font-size: 14.5px; }
+.digest-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink); display: flex; flex-direction: column; gap: 3px; }
+.digest-list .faint, .digest-p.faint { color: var(--ink-faint); }
+.digest-p { margin: 0 0 4px; font-size: 13px; line-height: 1.55; }
+.digest-table { font-size: 12px; }
+.digest-table td:first-child, .digest-table th:first-child { text-align: left; white-space: normal; }
+.digest-table .dn { color: var(--down); }
+.digest-table .up { color: var(--up); }
+.digest-note { padding: 0 14px 14px; }

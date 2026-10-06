@@ -1,13 +1,20 @@
 import { analyzeBid } from "../lib/bidReport";
 import { fmtDateROC, fmtNum } from "../lib/format";
 import type { AuctionTimelineRow } from "../lib/timeline";
-import type { BidStats, CBRow, PipelineRow } from "../lib/types";
+import type { BidStats, PipelineRow } from "../lib/types";
+
+export interface BidReportRow {
+  cb_code: string;
+  cb_name: string;
+  guarantee_situation: string | null;
+  tcri: string | null;
+}
 
 interface Props {
-  row: CBRow;
+  row: BidReportRow;
   bid: BidStats;
-  auction: AuctionTimelineRow | null;
-  pipeline: PipelineRow | null;
+  auction: Pick<AuctionTimelineRow, "auction_lots" | "timeline"> | null;
+  pipeline: Pick<PipelineRow, "listing_day" | "dismantling_day"> | null;
 }
 
 type Analysis = NonNullable<ReturnType<typeof analyzeBid>>;

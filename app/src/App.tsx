@@ -4,6 +4,7 @@ import { PipelinePage } from "./pages/PipelinePage";
 import { AuctionsPage } from "./pages/AuctionsPage";
 import { WatchlistPage } from "./pages/WatchlistPage";
 import { HistoryPage } from "./pages/HistoryPage";
+import { DigestPage } from "./pages/DigestPage";
 import { FilterSheet } from "./components/FilterSheet";
 import { CBDetailSheet } from "./components/CBDetailSheet";
 import { Login } from "./components/Login";
@@ -16,7 +17,7 @@ import { applyFilters, defaultFilters, countActiveFilters, type FilterState } fr
 import { isMarketOpen, taipeiTimeString } from "./lib/marketStatus";
 import type { BidStats, CBRow, PipelineRow } from "./lib/types";
 
-type Tab = "list" | "pipeline" | "auction" | "history" | "watch";
+type Tab = "list" | "pipeline" | "auction" | "digest" | "history" | "watch";
 
 const TABS: { key: Tab; label: string; icon: ReactNode }[] = [
   {
@@ -48,6 +49,17 @@ const TABS: { key: Tab; label: string; icon: ReactNode }[] = [
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M4 4h16v4l-6 6v6l-4-2v-4l-6-6z" />
+      </svg>
+    ),
+  },
+  {
+    key: "digest",
+    label: "日報",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M6 3h9l4 4v14H6z" />
+        <path d="M14 3v5h5" />
+        <path d="M9 13h7M9 17h7" />
       </svg>
     ),
   },
@@ -200,6 +212,7 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
         )}
         {tab === "pipeline" && <PipelinePage />}
         {tab === "auction" && <AuctionsPage />}
+        {tab === "digest" && <DigestPage />}
         {tab === "history" && <HistoryPage />}
         {tab === "watch" && (
           <WatchlistPage rows={rows} watchSet={watchSet} onToggleWatch={toggle} onSelect={setSelected} />

@@ -613,6 +613,8 @@ def backfill_timeline(url: str, key: str, dry_run: bool = False):
         if len(cases) > 1:
             print(f"  [timeline] 配對不唯一，略過：{code} <- {cases}")
     linked = updated = 0
+    pending_cp = {}
+    case_link = {}  # bid_stats.cb_code -> 公告案號（不受 bonds FK 限制，供前端把公告和開標統計配起來）
     for a in auctions:
         raw = a.get("raw_parsed") or {}
         text = raw.get("full_text")
@@ -627,6 +629,12 @@ def backfill_timeline(url: str, key: str, dry_run: bool = False):
                 if cp is not None:
                     patch["conversion_price"] = cp
         codes = cand[a["case_no"]]
+        if len(codes) == 1 and len(claimed[codes[0]]) == 1:
+            case_link[codes[0]] = a["case_no"]
+        if len(codes) == 1 and len(claimed[codes[0]]) == 1 and codes[0] not in listed:
+            cp_now = patch.get("conversion_price", a.get("conversion_price"))
+            if cp_now is not None:
+                pending_cp[codes[0]] = cp_now  # 新上市、尚未進 bonds 的債券：先把轉換價記到 bid_stats，日報算溢價用
         if len(codes) == 1 and len(claimed[codes[0]]) == 1 and codes[0] in listed:
             patch["cb_code"] = codes[0]
             linked += 1
@@ -652,7 +660,15 @@ def backfill_timeline(url: str, key: str, dry_run: bool = False):
             print(f"  FAIL timeline {a['case_no']} {r.status_code if r is not None else 'timeout'}", file=sys.stderr)
             continue
         updated += 1
-    print(f"[timeline] 公告 {len(auctions)} 筆，對應到 CB {linked} 筆，已更新 {updated} 筆")
+    if not dry_run:
+        for code, case_no in case_link.items():
+            requests.patch(f"{url}/rest/v1/bid_stats", params={"cb_code": f"eq.{code}"}, json={"case_no": case_no},
+                           headers={**headers, "Content-Type": "application/json", "Prefer": "return=minimal"}, timeout=30)
+        for code, cp in pending_cp.items():
+            requests.patch(f"{url}/rest/v1/bid_stats", params={"cb_code": f"eq.{code}", "conversion_price": "is.null"},
+                           json={"conversion_price": cp},
+                           headers={**headers, "Content-Type": "application/json", "Prefer": "return=minimal"}, timeout=30)
+    print(f"[timeline] 公告 {len(auctions)} 筆，對應到 CB {linked} 筆，已更新 {updated} 筆；待連結新券 {len(pending_cp)} 檔")
 
 
 # ---------------------------------------------------------------------------

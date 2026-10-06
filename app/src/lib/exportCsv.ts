@@ -8,6 +8,7 @@ export interface ExportSpec {
   dateCol?: string;
   start?: [number, number]; // 資料起始 [年, 月]，用於按月分塊讀取
   derive?: (r: Row) => Row;
+  prepare?: (rows: Row[]) => Promise<Row[]>; // 讀完所有列、排序後，匯出前的整批加工（例如累計欄位）
   filename: string;
 }
 
@@ -67,22 +68,53 @@ export const STOCK_EXPORT: Pick<ExportSpec, "table" | "columns" | "orderBy" | "d
   orderBy: ["stock_code", "trade_date"],
 };
 
-export const CONV_EXPORT: Pick<ExportSpec, "table" | "columns" | "orderBy" | "dateCol" | "start" | "derive"> = {
+function monthEnd(month: string): string {
+  const [y, m] = month.slice(0, 7).split("-").map(Number);
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return `${y}-${String(m).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
+}
+
+// 總張數 ＝ 現行債券的發行總額（億元）×1000；累計轉換張數 ＝ 該債逐月「本月轉換張數」累加；
+// 剩餘比率 ＝ (總張數 − 累計轉換張數) ÷ 總張數。已下線債券沒有發行總額，總張數與剩餘比率留空。
+async function prepareConversions(rows: Row[]): Promise<Row[]> {
+  const { data } = await supabase.from("bonds").select("cb_code,circulation");
+  const total = new Map<string, number>();
+  for (const b of (data ?? []) as { cb_code: string; circulation: number | null }[]) {
+    if (b.circulation) total.set(b.cb_code, Math.round(b.circulation * 1000));
+  }
+  const cum = new Map<string, number>();
+  for (const r of rows) {
+    const code = String(r.cb_code);
+    const c = (cum.get(code) ?? 0) + Number(r.converted_lots ?? 0);
+    cum.set(code, c);
+    const t = total.get(code) ?? null;
+    r.total_lots = t;
+    r.cum_converted = c;
+    r.remain_ratio = t ? Math.round(((t - c) / t) * 10000) / 100 : null;
+  }
+  return rows;
+}
+
+export const CONV_EXPORT: Pick<ExportSpec, "table" | "columns" | "orderBy" | "dateCol" | "start" | "derive" | "prepare"> = {
   table: "cb_conversions",
   dateCol: "month",
   start: [2020, 12],
-  derive: (r) => ({ ...r, month: String(r.month ?? "").slice(0, 7) }),
+  prepare: prepareConversions,
+  derive: (r) => ({ ...r, month: monthEnd(String(r.month ?? "")) }),
   columns: [
     ["cb_code", "CB代碼"],
     ["cb_name", "CB名稱"],
     ["stock_code", "母股代碼"],
     ["stock_name", "母股名稱"],
-    ["month", "月份"],
+    ["month", "月份(月底)"],
+    ["total_lots", "總張數", true],
     ["bought_back_lots", "本月買回張數"],
     ["converted_lots", "本月轉換張數"],
-    ["shares_converted", "轉換股數"],
+    ["cum_converted", "累計轉換張數", true],
+    ["shares_converted", "本月轉換股數"],
+    ["remain_ratio", "剩餘比率%", true],
     ["conversion_price", "轉換價格(元)"],
-    ["reset_date", "最近重設日"],
+    ["reset_date", "轉換價生效日(最近重設日)"],
   ],
   orderBy: ["cb_code", "month"],
 };
@@ -152,8 +184,9 @@ export async function exportCsv(spec: ExportSpec, onProgress?: (rows: number) =>
     return 0;
   });
 
+  const finalRows = spec.prepare ? await spec.prepare(all) : all;
   const lines = [spec.columns.map(([, h]) => csvCell(h)).join(",")];
-  for (const raw of all) {
+  for (const raw of finalRows) {
     const r = spec.derive ? spec.derive(raw) : raw;
     lines.push(spec.columns.map(([c]) => csvCell(r[c])).join(","));
   }

@@ -1,5 +1,14 @@
 import type { Bond, PipelineRow } from "./types";
 
+export interface AuctionTimeline {
+  pricing_base_date?: string;
+  inquiry_date?: string;
+  inquiry_payment_date?: string;
+  deduction_date?: string;
+  refund_date?: string;
+  listing_date_planned?: string;
+}
+
 export interface AuctionTimelineRow {
   case_no: string;
   cb_code: string | null;
@@ -8,14 +17,7 @@ export interface AuctionTimelineRow {
   payment_deadline: string | null;
   conversion_price: number | null;
   auction_lots: number | null;
-  timeline: {
-    pricing_base_date?: string;
-    inquiry_date?: string;
-    inquiry_payment_date?: string;
-    deduction_date?: string;
-    refund_date?: string;
-    listing_date_planned?: string;
-  } | null;
+  timeline: AuctionTimeline | null;
 }
 
 export interface TimelineEvent {

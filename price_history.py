@@ -335,9 +335,11 @@ EXPORT_COLUMNS = {
                      ("low", "最低"), ("close", "收盤"), ("change", "漲跌"), ("pct", "漲跌幅%"),
                      ("trades", "成交筆數"), ("volume", "成交量(張)"), ("amount", "成交金額(元)")],
     "cb_conversions": [("cb_code", "CB代碼"), ("cb_name", "CB名稱"), ("stock_code", "母股代碼"),
-                       ("stock_name", "母股名稱"), ("month", "月份"), ("bought_back_lots", "本月買回張數"),
-                       ("converted_lots", "本月轉換張數"), ("shares_converted", "轉換股數"),
-                       ("conversion_price", "轉換價格(元)"), ("reset_date", "最近重設日")],
+                       ("stock_name", "母股名稱"), ("month", "月份(月底)"), ("total_lots", "總張數"),
+                       ("bought_back_lots", "本月買回張數"), ("converted_lots", "本月轉換張數"),
+                       ("cum_converted", "累計轉換張數"), ("shares_converted", "本月轉換股數"),
+                       ("remain_ratio", "剩餘比率%"), ("conversion_price", "轉換價格(元)"),
+                       ("reset_date", "轉換價生效日(最近重設日)")],
 }
 EXPORT_ORDER = {
     "cb_prices": "cb_code.asc,trade_date.asc,mode.asc",
@@ -359,8 +361,25 @@ def derive_export_row(table: str, r: dict) -> dict:
         if table == "stock_prices" and r.get("volume") is not None:
             r["volume"] = int(r["volume"] // 1000)
     if table == "cb_conversions":
-        r["month"] = str(r.get("month", ""))[:7]
+        import calendar
+
+        y, m = int(str(r["month"])[:4]), int(str(r["month"])[5:7])
+        r["month"] = f"{y}-{m:02d}-{calendar.monthrange(y, m)[1]:02d}"
     return r
+
+
+def prepare_conversions(rows: list, db) -> list:
+    """總張數＝發行總額(億)×1000；累計轉換＝逐月累加；剩餘比率＝(總張數−累計轉換)/總張數。已下線債券無總額則留空。"""
+    total = {b["cb_code"]: round(b["circulation"] * 1000) for b in db.select("bonds", "cb_code,circulation") if b["circulation"]}
+    cum = {}
+    for r in sorted(rows, key=lambda x: (x["cb_code"], x["month"])):
+        c = cum.get(r["cb_code"], 0) + (r.get("converted_lots") or 0)
+        cum[r["cb_code"]] = c
+        t = total.get(r["cb_code"])
+        r["total_lots"] = t
+        r["cum_converted"] = c
+        r["remain_ratio"] = round((t - c) / t * 100, 2) if t else None
+    return sorted(rows, key=lambda x: (x["cb_code"], x["month"]))
 
 
 def write_export_csv(path, table: str, rows: list):
@@ -392,6 +411,8 @@ def export_all(db):
                 break
             off += 1000
         path = out_dir / f"{table}_{stamp}.csv"
+        if table == "cb_conversions":
+            rows = prepare_conversions(rows, db)
         write_export_csv(path, table, rows)
         print(f"[export] {path} {len(rows)} 筆")
 

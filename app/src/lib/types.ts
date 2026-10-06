@@ -125,6 +125,7 @@ export interface BidStats {
   won_qty: number | null;
   won_amount: number | null;
   report_pdf_url: string | null;
+  case_no?: string | null;
   inst_qualified_count: number | null;
   inst_qualified_qty: number | null;
   inst_won_count: number | null;
