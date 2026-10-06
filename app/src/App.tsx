@@ -124,6 +124,7 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
   const { rows: bidStatsRows } = useSimpleTable<BidStats>("bid_stats");
   const { rows: pipelineRows } = useSimpleTable<PipelineRow>("pipeline");
   const auctionTimelines = useAuctionTimelines();
+  const liveCodes = useMemo(() => new Set(rows.map((r) => r.cb_code)), [rows]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30_000);
@@ -213,7 +214,7 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
         {tab === "pipeline" && <PipelinePage />}
         {tab === "auction" && <AuctionsPage bidRows={bidStatsRows} pipelineRows={pipelineRows} />}
         {tab === "digest" && <DigestPage />}
-        {tab === "history" && <HistoryPage />}
+        {tab === "history" && <HistoryPage liveCodes={liveCodes} />}
         {tab === "watch" && (
           <WatchlistPage rows={rows} watchSet={watchSet} onToggleWatch={toggle} onSelect={setSelected} />
         )}

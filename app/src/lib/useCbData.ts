@@ -13,7 +13,7 @@ export function useCbData() {
     setLoading(true);
     setError(null);
     const [bondsRes, stocksRes, quotesRes, signalsRes] = await Promise.all([
-      supabase.from("bonds").select("*"),
+      supabase.from("bonds").select("*").neq("is_active", false),
       supabase.from("stocks").select("*"),
       supabase.from("quotes").select("*"),
       supabase.from("cb_signals").select("*"),

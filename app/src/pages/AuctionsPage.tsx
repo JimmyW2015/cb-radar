@@ -5,7 +5,7 @@ import { useSimpleTable } from "../lib/useSimpleTable";
 import type { Auction, BidStats, PipelineRow } from "../lib/types";
 
 const AUCTION_COLUMNS =
-  "case_no,report_date,underwriter,company,cb_code,bond_type,method,status,pdf_url,issue_price_pct,conversion_price,conversion_premium_pct,auction_lots,self_retained_lots,total_lots,bid_opening_date,payment_deadline,updated_at,timeline:raw_parsed->timeline";
+  "case_no,report_date,underwriter,company,stock_code,cb_code,bond_type,method,status,pdf_url,issue_price_pct,conversion_price,conversion_premium_pct,auction_lots,self_retained_lots,total_lots,bid_opening_date,payment_deadline,updated_at,timeline:raw_parsed->timeline";
 
 interface AuctionFilterState {
   search: string;
@@ -47,7 +47,7 @@ export function AuctionsPage({ bidRows, pipelineRows }: { bidRows: BidStats[]; p
   const filtered = useMemo(() => {
     const q = filters.search.trim().toLowerCase();
     return rows.filter((a) => {
-      if (q && !a.company.toLowerCase().includes(q) && !(a.cb_code ?? "").includes(q)) return false;
+      if (q && !a.company.toLowerCase().includes(q) && !(a.cb_code ?? "").includes(q) && !(a.stock_code ?? "").includes(q)) return false;
       if (filters.year && a.report_date?.slice(0, 4) !== filters.year) return false;
       if (filters.month && String(Number(a.report_date?.slice(5, 7))) !== filters.month) return false;
       if (filters.underwriter && a.underwriter !== filters.underwriter) return false;
@@ -77,7 +77,7 @@ export function AuctionsPage({ bidRows, pipelineRows }: { bidRows: BidStats[]; p
             <line x1="21" y1="21" x2="16.6" y2="16.6" />
           </svg>
           <input
-            placeholder="搜尋股票代碼／公司名稱"
+            placeholder="搜尋股票代碼／公司名稱／CB 代碼"
             value={filters.search}
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           />

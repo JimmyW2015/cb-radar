@@ -7,6 +7,7 @@ export interface HistoryRow {
   report_date: string | null;
   underwriter: string;
   company: string;
+  stock_code: string | null;
   cb_code: string | null;
   bond_type: string | null;
   method: string | null;
@@ -30,7 +31,7 @@ export interface HistoryRow {
 }
 
 const COLUMNS =
-  "case_no,report_date,underwriter,company,cb_code,bond_type,method,status,pdf_url,issue_price_pct,conversion_price,conversion_premium_pct,auction_lots,bid_opening_date,payment_deadline,timeline:raw_parsed->timeline";
+  "case_no,report_date,underwriter,company,stock_code,cb_code,bond_type,method,status,pdf_url,issue_price_pct,conversion_price,conversion_premium_pct,auction_lots,bid_opening_date,payment_deadline,timeline:raw_parsed->timeline";
 export function useHistory() {
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);

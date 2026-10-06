@@ -59,6 +59,7 @@ export interface Quote {
 }
 
 export interface Auction {
+  stock_code?: string | null;
   case_no: string;
   report_date: string | null;
   underwriter: string;

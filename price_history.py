@@ -5,6 +5,7 @@
   python price_history.py stock 2021-09-01     # 從指定日起回補現行 CB 母股日行情（證交所／櫃買）
   python price_history.py all   2021-09-01     # 兩者都做
   python price_history.py conv  2020-12-01     # 回補每月轉換資料（公開資訊觀測站）
+  python price_history.py stock_all_cb 2021-09-01  # 補『所有發行過CB的公司（含已下線）』的母股日行情
   python price_history.py all                  # 不帶日期：只補最近 14 天（每日補漏用）
   python price_history.py export               # 匯出全部資料成 CSV 到 price_archive/（本機備份）
 
@@ -413,6 +414,48 @@ def export_all(db):
         print(f"[export] {path} {len(rows)} 筆")
 
 
+def run_stock_all_cb(db, since: date, until: date):
+    """補『所有發行過 CB 的公司』（含已下線的券）的母股日行情：每檔從它最早一檔 CB 開始交易那天起算。
+    市場別不預先判斷，當天證交所與櫃買的全市場資料都抓，誰有這個代號就用誰。可中斷續跑（進度記在 .price_progress.json 的 stock_all）。"""
+    first = {}
+    for u in db.select("cb_universe", "stock_code,first_date"):
+        if u["stock_code"] and u["first_date"]:
+            first[u["stock_code"]] = min(first.get(u["stock_code"], "9999"), u["first_date"])
+    days = []
+    y, m = since.year, since.month
+    while (y, m) <= (until.year, until.month):
+        days += [d for d in cb_files_for_month(y, m) if since <= date.fromisoformat(d) <= until]
+        m += 1
+        if m == 13:
+            y, m = y + 1, 1
+    days.sort()
+    prog = load_progress()
+    done = set(prog.get("stock_all", []))
+    total = 0
+    for d in days:
+        if d in done:
+            continue
+        codes = [c for c, f in first.items() if d >= f]
+        rows = []
+        if codes:
+            merged = {}
+            for fn in (tpex_day, twse_day):
+                merged.update(fn(d))
+                time.sleep(DELAY)
+            for c in codes:
+                v = merged.get(c)
+                if v and v["close"] is not None:
+                    rows.append({"stock_code": c, "trade_date": d, **v})
+        if rows:
+            db.upsert("stock_prices", rows, "stock_code,trade_date")
+        total += len(rows)
+        done.add(d)
+        prog["stock_all"] = sorted(done)
+        save_progress(prog)
+        print(f"[stock_all] {d} {len(rows)} 筆", flush=True)
+    print(f"[stock_all] 完成，共寫入 {total} 筆")
+
+
 def main():
     kind = sys.argv[1] if len(sys.argv) > 1 else "all"
     if kind == "export":
@@ -425,6 +468,8 @@ def main():
         PROGRESS.write_text(json.dumps({"cb": [], "stock": []}), encoding="utf-8")  # 每日補漏：近 14 天一律重寫
     if kind in ("cb", "all"):
         run_cb(db, since, until)
+    if kind == "stock_all_cb":
+        run_stock_all_cb(db, since, until)
     if kind in ("stock", "all"):
         run_stock(db, since, until)
     if kind in ("conv", "all"):

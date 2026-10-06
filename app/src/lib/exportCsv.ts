@@ -7,6 +7,10 @@ export interface ExportSpec {
   columns: [string, string, boolean?][]; // [欄位, 表頭, 是否為匯出時計算出的欄位]
   orderBy: string[];
   eq?: [string, string];
+  codes?: [string, string[]]; // 只取這幾個代號（server 端 in 篩選）
+  from?: string; // 期間起（YYYY-MM-DD，含）
+  to?: string; // 期間迄（YYYY-MM-DD，含）
+  keep?: (r: Row) => boolean; // 讀完後的用戶端篩選（例如依狀態）
   dateCol?: string;
   start?: [number, number]; // 資料起始 [年, 月]，用於按月分塊讀取
   derive?: (r: Row) => Row;
@@ -132,6 +136,9 @@ function fetchRange(spec: ExportSpec, select: string, gte?: string, lt?: string)
   return fetchAllPages<Row>((from, to) => {
     let q = supabase.from(spec.table).select(select);
     if (spec.eq) q = q.eq(spec.eq[0], spec.eq[1]);
+    if (spec.codes) q = q.in(spec.codes[0], spec.codes[1]);
+    if (spec.from) q = q.gte(dateCol, spec.from);
+    if (spec.to) q = q.lte(dateCol, spec.to);
     if (gte) q = q.gte(dateCol, gte);
     if (lt) q = q.lt(dateCol, lt);
     for (const col of spec.orderBy) q = q.order(col, { ascending: true });
@@ -158,10 +165,10 @@ function monthRanges(start: [number, number] = [2021, 8]): [string, string][] {
 export async function exportCsv(spec: ExportSpec, onProgress?: (rows: number) => void): Promise<number> {
   const select = spec.columns.filter(([, , d]) => !d).map(([c]) => c).join(",");
   const all: Row[] = [];
-  if (spec.eq) {
+  if (spec.eq || spec.codes) {
     all.push(...(await fetchRange(spec, select)));
   } else {
-    const ranges = monthRanges(spec.start);
+    const ranges = monthRanges(spec.start).filter(([g, l]) => (!spec.to || g <= spec.to) && (!spec.from || l > spec.from));
     const CONCURRENCY = 6;
     for (let i = 0; i < ranges.length; i += CONCURRENCY) {
       const results = await Promise.all(ranges.slice(i, i + CONCURRENCY).map(([g, l]) => fetchRange(spec, select, g, l)));
@@ -171,8 +178,9 @@ export async function exportCsv(spec: ExportSpec, onProgress?: (rows: number) =>
   }
   onProgress?.(all.length);
 
+  const kept = spec.keep ? all.filter(spec.keep) : all;
   const keyOf = (r: Row) => spec.orderBy.map((c) => String(r[c] ?? ""));
-  const sorted = all
+  const sorted = kept
     .map((r) => [keyOf(r), r] as const)
     .sort(([kx], [ky]) => {
       for (let i = 0; i < kx.length; i++) if (kx[i] !== ky[i]) return kx[i] < ky[i] ? -1 : 1;
@@ -181,6 +189,7 @@ export async function exportCsv(spec: ExportSpec, onProgress?: (rows: number) =>
     .map(([, r]) => r);
 
   const finalRows = spec.prepare ? await spec.prepare(sorted) : sorted;
+  if (finalRows.length === 0) return 0;
   const lines = [spec.columns.map(([, h]) => csvCell(h)).join(",")];
   for (const raw of finalRows) {
     const r = spec.derive ? spec.derive(raw) : raw;

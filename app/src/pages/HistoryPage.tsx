@@ -1,13 +1,12 @@
 import { useMemo, useState } from "react";
 import { HistoryCard, STATUS_LABEL, historyStatus, type HistoryStatus } from "../components/HistoryCard";
-import { ExportButton } from "../components/ExportButton";
-import { CB_EXPORT, CONV_EXPORT, STOCK_EXPORT } from "../lib/exportCsv";
+import { ExportPanel } from "../components/ExportPanel";
 import { hasGuarantee } from "../lib/bond";
 import { useHistory } from "../lib/useHistory";
 
 const PAGE_SIZE = 40;
 
-export function HistoryPage() {
+export function HistoryPage({ liveCodes }: { liveCodes: Set<string> }) {
   const { rows, loading, error } = useHistory();
   const [search, setSearch] = useState("");
   const [year, setYear] = useState("");
@@ -15,7 +14,7 @@ export function HistoryPage() {
   const [status, setStatus] = useState<"all" | HistoryStatus>("delisted");
   const [shown, setShown] = useState(PAGE_SIZE);
 
-  const withStatus = useMemo(() => rows.map((r) => ({ r, s: historyStatus(r) })), [rows]);
+  const withStatus = useMemo(() => rows.map((r) => ({ r, s: historyStatus(r, liveCodes) })), [rows, liveCodes]);
   const years = useMemo(
     () => [...new Set(rows.map((r) => r.report_date?.slice(0, 4)).filter((x): x is string => !!x))].sort().reverse(),
     [rows],
@@ -24,8 +23,8 @@ export function HistoryPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return withStatus.filter(({ r, s }) => {
-      if (status !== "all" && s !== status) return false;
-      if (q && !r.company.toLowerCase().includes(q) && !(r.cb_code ?? "").includes(q)) return false;
+      if (!q && status !== "all" && s !== status) return false; // 有輸入搜尋時，各種狀態都顯示
+      if (q && !r.company.toLowerCase().includes(q) && !(r.cb_code ?? "").includes(q) && !(r.stock_code ?? "").includes(q)) return false;
       if (year && r.report_date?.slice(0, 4) !== year) return false;
       const isGuaranteed = hasGuarantee(r.bond_type);
       if (guarantee === "guaranteed" && !isGuaranteed) return false;
@@ -43,14 +42,7 @@ export function HistoryPage() {
         <span>依承銷公告整理，「已下線」為推定（不在目前總表內），下線原因與日期暫無資料</span>
       </div>
 
-      <div className="export-panel">
-        <div className="export-title">行情與轉換資料庫（可匯出，只增不減）</div>
-        <div className="export-row">
-          <ExportButton label="匯出全部 CB 日K" spec={{ ...CB_EXPORT, filename: "CB日K_全部.csv" }} />
-          <ExportButton label="匯出全部母股日K" spec={{ ...STOCK_EXPORT, filename: "母股日K_全部.csv" }} />
-          <ExportButton label="匯出全部每月轉換資料" spec={{ ...CONV_EXPORT, filename: "每月轉換資料_全部.csv" }} />
-        </div>
-      </div>
+      <ExportPanel />
 
       <div className="searchrow" style={{ marginTop: 4 }}>
         <div className="search">
@@ -59,7 +51,7 @@ export function HistoryPage() {
             <line x1="21" y1="21" x2="16.6" y2="16.6" />
           </svg>
           <input
-            placeholder="搜尋公司名稱／CB 代碼"
+            placeholder="搜尋公司名稱／母股代號／CB 代碼"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);

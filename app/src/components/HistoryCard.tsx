@@ -13,8 +13,8 @@ export const STATUS_LABEL: Record<HistoryStatus, string> = {
 
 const ORDINALS = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五"];
 
-export function historyStatus(r: HistoryRow, today = new Date()): HistoryStatus {
-  if (r.cb_code) return "live";
+export function historyStatus(r: HistoryRow, liveCodes: Set<string>, today = new Date()): HistoryStatus {
+  if (r.cb_code && liveCodes.has(r.cb_code)) return "live";
   if (r.status === "撤銷") return "cancelled";
   const reported = r.report_date ? new Date(r.report_date) : null;
   const ageDays = reported ? (today.getTime() - reported.getTime()) / 86_400_000 : Infinity;
@@ -47,6 +47,7 @@ export function HistoryCard({ row, status }: { row: HistoryRow; status: HistoryS
       </div>
       <div className="a-sub">
         {row.method ?? "-"} · 主辦：{row.underwriter}
+        {row.stock_code && <> · 母股 {row.stock_code}</>}
         {row.cb_code && <> · {row.cb_code}</>}
       </div>
       <div className="a-row">
